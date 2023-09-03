@@ -1,0 +1,32 @@
+#include "resource.h"
+
+ICO_RES   ICON   ".\\tm2ico.ico"
+
+1     VERSIONINFO
+FILEVERSION     VER_MAJOR,VER_MINOR,VER_BUILD,0
+PRODUCTVERSION  VER_MAJOR,VER_MINOR,VER_BUILD,0
+FILEFLAGSMASK   0x3F
+FILEFLAGS       0x0
+FILEOS          0x40004
+FILETYPE        0x1
+FILESUBTYPE     0x0
+{
+  BLOCK "StringFileInfo" {
+    BLOCK "040904B0" {
+      VALUE "CompanyName",      ""
+      VALUE "FileVersion",      VER_STR
+      VALUE "FileDescription",  "TinyMap" VER_STR
+      VALUE "InternalName",     "TinyMap2"
+      VALUE "LegalCopyright",   "\xA9 2009-" VSTR_YEAR
+//      VALUE "LegalTrademarks",  ""
+      VALUE "OriginalFilename", "TinyMap2.exe"
+      VALUE "ProductName",      "TinyMap"
+      VALUE "ProductVersion",   "v" VER_STR
+      VALUE "Comments",         ""
+    }
+  }
+  BLOCK "VarFileInfo" {
+    VALUE "Translation", 0x0409, 0x04B0
+  }
+}
+
