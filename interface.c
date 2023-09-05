@@ -50,9 +50,11 @@ struct {
   
   HWND gStats, eStats;
   
-  u32 resizing;
-  RECT current, target, border, delta;
+  bool resizing;
+  RECT current, target, border;
+  int deltaX, deltaY;
   u32 state;
+  u32 curState;
 } mainwnd = {0};
 
 struct {
@@ -129,77 +131,21 @@ void showWindow(){
 
 void changeWndState(u32 newState){
   if(mainwnd.state == newState) return;
-  switch(newState){
-    case WND_STATE_MAIN:
-      if(mainwnd.state == WND_STATE_INIT){ // Not already visible
-        ShowWindow(mainwnd.sFilesize, SW_SHOWNA);
-        ShowWindow(mainwnd.bAdvOpts, SW_SHOWNA);
-        ShowWindow(mainwnd.bSave, SW_SHOWNA);
-        ShowWindow(mainwnd.bStats, SW_SHOWNA);
-        ShowWindow(mainwnd.gCompOpts, SW_SHOWNA);
-        ShowWindow(mainwnd.gCompType, SW_SHOWNA);
-        ShowWindow(mainwnd.oMelee, SW_SHOWNA);
-        ShowWindow(mainwnd.oUMS, SW_SHOWNA);
-        ShowWindow(mainwnd.gCompGame, SW_SHOWNA);
-        ShowWindow(mainwnd.oStarCraft, SW_SHOWNA);
-        ShowWindow(mainwnd.oBroodWar, SW_SHOWNA);
-        ShowWindow(mainwnd.oExtended, SW_SHOWNA);
-      }else{
-        SetWindowText(mainwnd.bAdvOpts, ADVANCED_OPEN);
-        SetWindowText(mainwnd.bStats, STATS_OPEN);
-      }
-      mainwnd.target = DIM_MAIN;
-      CreateThread(NULL, 0, &resizeThread, NULL, 0, NULL);
-      break;
-    
-    case WND_STATE_ADV:
-      if(mainwnd.state == WND_STATE_STAT){
-        mainwnd.target = DIM_MAIN;
-        resizeThread(NULL);
-        ShowWindow(mainwnd.gStats, SW_HIDE);
-        ShowWindow(mainwnd.eStats, SW_HIDE);
-        SetWindowText(mainwnd.bStats, STATS_OPEN);
-      }
-      ShowWindow(mainwnd.sMPQComp, SW_SHOWNA);
-      ShowWindow(mainwnd.gAdvOpts, SW_SHOWNA);
-      ShowWindow(mainwnd.gFManage, SW_SHOWNA);
-      ShowWindow(mainwnd.gFProps, SW_SHOWNA);
-      ShowWindow(mainwnd.cDelName, SW_SHOWNA);
-      ShowWindow(mainwnd.cTrimMTXM, SW_SHOWNA);
-      ShowWindow(mainwnd.cDelSPActs, SW_SHOWNA);
-      ShowWindow(mainwnd.cCompWAVs, SW_SHOWNA);
-      ShowWindow(mainwnd.cbMPQComp, SW_SHOWNA);
-      ShowWindow(mainwnd.lFiles, SW_SHOWNA);
-      SetWindowText(mainwnd.bAdvOpts, ADVANCED_CLOSE);
-      mainwnd.target = DIM_ADV;
-      CreateThread(NULL, 0, &resizeThread, NULL, 0, NULL);
-      break;
-    
-    case WND_STATE_STAT:
-      if(mainwnd.state == WND_STATE_ADV){
-        mainwnd.target = DIM_MAIN;
-        resizeThread(NULL);
-        ShowWindow(mainwnd.sMPQComp, SW_HIDE);
-        ShowWindow(mainwnd.gAdvOpts, SW_HIDE);
-        ShowWindow(mainwnd.gFManage, SW_HIDE);
-        ShowWindow(mainwnd.gFProps, SW_HIDE);
-        ShowWindow(mainwnd.cDelName, SW_HIDE);
-        ShowWindow(mainwnd.cTrimMTXM, SW_HIDE);
-        ShowWindow(mainwnd.cDelSPActs, SW_HIDE);
-        ShowWindow(mainwnd.cCompWAVs, SW_HIDE);
-        ShowWindow(mainwnd.cbMPQComp, SW_HIDE);
-        ShowWindow(mainwnd.lFiles, SW_HIDE);
-        SetWindowText(mainwnd.bAdvOpts, ADVANCED_OPEN);
-      }
-      ShowWindow(mainwnd.gStats, SW_SHOWNA);
-      ShowWindow(mainwnd.eStats, SW_SHOWNA);
-      SetWindowText(mainwnd.bStats, STATS_CLOSE);
-      mainwnd.target = DIM_STAT;
-      CreateThread(NULL, 0, &resizeThread, NULL, 0, NULL);
-      break;
-  }
   mainwnd.state = newState;
-  RedrawWindow(mainwnd.hwnd, NULL, NULL, RDW_INVALIDATE);
+  if(!mainwnd.resizing){
+    CreateThread(NULL, 0, &resizeThread, NULL, 0, NULL);
+  }
+  
+  if(newState == WND_STATE_ADV){
+    SetWindowText(mainwnd.bAdvOpts, ADVANCED_CLOSE);
+  }else{
+    SetWindowText(mainwnd.bAdvOpts, ADVANCED_OPEN);
+  }
+  if(newState == WND_STATE_STAT){
+    SetWindowText(mainwnd.bStats, STATS_CLOSE);
+  }else{
+    SetWindowText(mainwnd.bStats, STATS_OPEN);
+  }
 }
 
 // Determines valid compatability options, changing the selected option if necessary, and updates the window
@@ -848,26 +794,120 @@ HWND CreateControl(LPCTSTR lpClassName, LPCTSTR lpWindowName, DWORD dwStyle, int
 }
 
 DWORD WINAPI resizeThread(LPVOID lpp){
-  mainwnd.resizing = 1;
-  mainwnd.target.top += mainwnd.border.top;
-  mainwnd.target.left += mainwnd.border.left;
-  mainwnd.target.bottom += mainwnd.border.bottom;
-  mainwnd.target.right += mainwnd.border.right;
-  sleep(2);
+  mainwnd.resizing = true;
   
-  mainwnd.resizing = 2;
-  while((mainwnd.current.bottom - mainwnd.current.top != mainwnd.target.bottom - mainwnd.target.top ||
-         mainwnd.current.right - mainwnd.current.left != mainwnd.target.right - mainwnd.target.left) && mainwnd.resizing == 2){
-    GetWindowRect(mainwnd.hwnd, &mainwnd.current);
-    if(mainwnd.current.bottom - mainwnd.current.top < mainwnd.target.bottom - mainwnd.target.top) mainwnd.current.bottom += GROWTH_Y;
-    if(mainwnd.current.bottom - mainwnd.current.top > mainwnd.target.bottom - mainwnd.target.top) mainwnd.current.bottom -= GROWTH_Y;
-    if(mainwnd.current.right - mainwnd.current.left < mainwnd.target.right - mainwnd.target.left) mainwnd.current.right += GROWTH_X;
-    if(mainwnd.current.right - mainwnd.current.left > mainwnd.target.right - mainwnd.target.left) mainwnd.current.right -= GROWTH_X;
-    SetWindowPos(mainwnd.hwnd, NULL, 0, 0, mainwnd.current.right - mainwnd.current.left, mainwnd.current.bottom - mainwnd.current.top, SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER);
-    sleep(2);
+  if(mainwnd.curState == WND_STATE_INIT){
+    ShowWindow(mainwnd.sFilesize, SW_SHOWNA);
+    ShowWindow(mainwnd.bAdvOpts, SW_SHOWNA);
+    ShowWindow(mainwnd.bSave, SW_SHOWNA);
+    ShowWindow(mainwnd.bStats, SW_SHOWNA);
+    ShowWindow(mainwnd.gCompOpts, SW_SHOWNA);
+    ShowWindow(mainwnd.gCompType, SW_SHOWNA);
+    ShowWindow(mainwnd.oMelee, SW_SHOWNA);
+    ShowWindow(mainwnd.oUMS, SW_SHOWNA);
+    ShowWindow(mainwnd.gCompGame, SW_SHOWNA);
+    ShowWindow(mainwnd.oStarCraft, SW_SHOWNA);
+    ShowWindow(mainwnd.oBroodWar, SW_SHOWNA);
+    ShowWindow(mainwnd.oExtended, SW_SHOWNA);
   }
   
-  mainwnd.resizing = 0;
+  while(mainwnd.curState != mainwnd.state) {
+    if(mainwnd.curState != WND_STATE_MAIN){ // close before switching tabs
+      mainwnd.curState = WND_STATE_MAIN;
+    }else{
+      mainwnd.curState = mainwnd.state;
+    }
+    
+    switch(mainwnd.curState){
+      case WND_STATE_INIT:
+        mainwnd.target = DIM_INIT;
+        break;
+      case WND_STATE_MAIN:
+      default:
+        mainwnd.target = DIM_MAIN;
+        break;
+      case WND_STATE_ADV:
+        mainwnd.target = DIM_ADV;
+        ShowWindow(mainwnd.sMPQComp, SW_SHOWNA);
+        ShowWindow(mainwnd.gAdvOpts, SW_SHOWNA);
+        ShowWindow(mainwnd.gFManage, SW_SHOWNA);
+        ShowWindow(mainwnd.gFProps, SW_SHOWNA);
+        ShowWindow(mainwnd.cDelName, SW_SHOWNA);
+        ShowWindow(mainwnd.cTrimMTXM, SW_SHOWNA);
+        ShowWindow(mainwnd.cDelSPActs, SW_SHOWNA);
+        ShowWindow(mainwnd.cCompWAVs, SW_SHOWNA);
+        ShowWindow(mainwnd.cbMPQComp, SW_SHOWNA);
+        ShowWindow(mainwnd.lFiles, SW_SHOWNA);
+        break;
+      case WND_STATE_STAT:
+        mainwnd.target = DIM_STAT;
+        ShowWindow(mainwnd.gStats, SW_SHOWNA);
+        ShowWindow(mainwnd.eStats, SW_SHOWNA);
+        break;
+    }
+    
+    mainwnd.target.left += mainwnd.border.left;
+    mainwnd.target.top += mainwnd.border.top;
+    mainwnd.target.right += mainwnd.border.right;
+    mainwnd.target.bottom += mainwnd.border.bottom;
+    
+    int curWidth = mainwnd.current.right - mainwnd.current.left;
+    int curHeight = mainwnd.current.bottom - mainwnd.current.top;
+    int targetWidth = mainwnd.target.right - mainwnd.target.left;
+    int targetHeight = mainwnd.target.bottom - mainwnd.target.top;
+    if(curWidth < targetWidth){
+      mainwnd.deltaX = GROWTH_X;
+    }else if(curWidth > targetWidth){
+      mainwnd.deltaX = -GROWTH_X;
+    }else{
+      mainwnd.deltaX = 0;
+    }
+    if(curHeight < targetHeight){
+      mainwnd.deltaY = GROWTH_Y;
+    }else if(curHeight > targetHeight){
+      mainwnd.deltaY = -GROWTH_Y;
+    }else{
+      mainwnd.deltaY = 0;
+    }
+    sleep(2);
+    
+    while(curWidth != targetWidth || curHeight != targetHeight){
+      GetWindowRect(mainwnd.hwnd, &mainwnd.current);
+      curWidth = mainwnd.current.right - mainwnd.current.left + mainwnd.deltaX;
+      curHeight = mainwnd.current.bottom - mainwnd.current.top + mainwnd.deltaY;
+      
+      // prevent overshoot
+      if((mainwnd.deltaX < 0 && curWidth < targetWidth) || (mainwnd.deltaX > 0 && curWidth > targetWidth)){
+        mainwnd.deltaX = 0;
+        curWidth = targetWidth;
+      }
+      if((mainwnd.deltaY < 0 && curHeight < targetHeight) || (mainwnd.deltaY > 0 && curHeight > targetHeight)){
+        mainwnd.deltaY = 0;
+        curHeight = targetHeight;
+      }
+      
+      SetWindowPos(mainwnd.hwnd, NULL, 0, 0, curWidth, curHeight, SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOZORDER);
+      sleep(2);
+    }
+    
+    // hide controls only after tab has closed
+    if(mainwnd.curState == WND_STATE_MAIN){
+      ShowWindow(mainwnd.sMPQComp, SW_HIDE);
+      ShowWindow(mainwnd.gAdvOpts, SW_HIDE);
+      ShowWindow(mainwnd.gFManage, SW_HIDE);
+      ShowWindow(mainwnd.gFProps, SW_HIDE);
+      ShowWindow(mainwnd.cDelName, SW_HIDE);
+      ShowWindow(mainwnd.cTrimMTXM, SW_HIDE);
+      ShowWindow(mainwnd.cDelSPActs, SW_HIDE);
+      ShowWindow(mainwnd.cCompWAVs, SW_HIDE);
+      ShowWindow(mainwnd.cbMPQComp, SW_HIDE);
+      ShowWindow(mainwnd.lFiles, SW_HIDE);
+      ShowWindow(mainwnd.gStats, SW_HIDE);
+      ShowWindow(mainwnd.eStats, SW_HIDE);
+    }
+  }
+  
+  mainwnd.resizing = false;
   return 0;
 }
 
