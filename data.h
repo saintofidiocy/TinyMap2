@@ -2,7 +2,7 @@
 #ifdef DATA_EMBED
 #define DATA_MPQ               ".\\TinyMap2.exe"
 #else
-#define DATA_MPQ               ".\\data\\data.mpq"
+#define DATA_MPQ               ".\\data.mpq"
 #endif
 
 
@@ -11,9 +11,9 @@ extern UNITSDAT unitsdat;
 extern WEAPONSDAT weaponsdat;
 extern UPGRADESDAT upgradesdat;
 extern TECHDATADAT techdatadat;
+extern VCOD refVCOD;
 extern u16* tileData[8];
 extern int tileDataSize[8];
-
 
 // Functions
 bool loadDataMPQ();

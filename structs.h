@@ -4,6 +4,16 @@
 
 #include <pshpack1.h>
 
+// used for VCOD hashing
+typedef struct{
+  u32 humanID;
+  u32 stormID;
+  u8  type;
+  u8  race;
+  u8  force;
+  u8  name[25];
+} playerStruct;
+
 // ---- CHK Sections ----
 typedef struct {
   u32 name;

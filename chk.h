@@ -1,6 +1,5 @@
 #include "types.h"
 
-
 typedef struct {
   CHKH header;
   void* data;
@@ -36,3 +35,8 @@ void countWAVs(MapFile* mapFiles, u32 mapFileCount);
 u8* createCHKBuffer(int outputType);
 u32 createMeleeCHK(u8* buffer, int mode);
 u32 createUMSCHK(u8* buffer, int mode);
+
+void initTrigIterator(TrigIterator* ti, u32 flags);
+bool getNextTrig(TrigIterator* ti);
+CONDITION* getNextCondition(TrigIterator* ti);
+ACTION* getNextAction(TrigIterator* ti);

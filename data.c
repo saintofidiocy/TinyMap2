@@ -6,6 +6,7 @@ UNITSDAT unitsdat;
 WEAPONSDAT weaponsdat;
 UPGRADESDAT upgradesdat;
 TECHDATADAT techdatadat;
+VCOD refVCOD;
 
 u16* tileData[8] = {0};
 int tileDataSize[8] = {0};
@@ -29,7 +30,8 @@ bool loadDataMPQ(){
   if(!loadDatFile("arr\\units.dat", &unitsdat, sizeof(UNITSDAT)) ||
      !loadDatFile("arr\\weapons.dat", &weaponsdat, sizeof(WEAPONSDAT)) ||
      !loadDatFile("arr\\upgrades.dat", &upgradesdat, sizeof(UPGRADESDAT)) ||
-     !loadDatFile("arr\\techdata.dat", &techdatadat, sizeof(TECHDATADAT))) {
+     !loadDatFile("arr\\techdata.dat", &techdatadat, sizeof(TECHDATADAT)) ||
+     !loadDatFile("vcod.bin", &refVCOD, sizeof(VCOD))) {
     SFileCloseArchive(hMPQ);
     return false;
   }
