@@ -52,6 +52,146 @@ u32 trigCount, trigUnique, trigWCount, trigMax;
 u32 mbrfCount;
 u32 unitCount, unitUnique, unitWCount;
 u32 thg2Count;
+u32 forcSize;
+
+
+SectionDef sections[SECTION_COUNT] = {
+  {SECT_TYPE_ID, SECT_TYPE, LOADSIZE_CONST, &chkTYPE, sizeof(chkTYPE), NULL},
+  {SECT_VER_ID,  SECT_VER,  LOADSIZE_CONST, &chkVER,  sizeof(chkVER),  NULL},
+  {SECT_VCOD_ID, SECT_VCOD, LOADSIZE_CONST, &chkVCOD, sizeof(chkVCOD), NULL},
+  {SECT_OWNR_ID, SECT_OWNR, LOADSIZE_CONST,  chkOWNR, sizeof(chkOWNR), NULL},
+  {SECT_ERA_ID,  SECT_ERA,  LOADSIZE_CONST, &chkERA,  sizeof(chkERA),  NULL},
+  {SECT_DIM_ID,  SECT_DIM,  LOADSIZE_CONST, &chkDIM,  sizeof(chkDIM),  NULL},
+  {SECT_SIDE_ID, SECT_SIDE, LOADSIZE_CONST,  chkSIDE, sizeof(chkSIDE), NULL},
+  {SECT_MTXM_ID, SECT_MTXM, LOADSIZE_MAX,    chkMTXM, sizeof(chkMTXM), &mtxmSize},
+  {SECT_PUNI_ID, SECT_PUNI, LOADSIZE_CONST, &chkPUNI, sizeof(chkPUNI), NULL},
+  {SECT_UPGR_ID, SECT_UPGR, LOADSIZE_CONST, &chkUPGR, sizeof(chkUPGR), NULL},
+  {SECT_PTEC_ID, SECT_PTEC, LOADSIZE_CONST, &chkPTEC, sizeof(chkPTEC), NULL},
+  {SECT_UNIT_ID, SECT_UNIT, LOADSIZE_ENTRY, &chkUNIT, sizeof(UNIT),    &unitCount},
+  {SECT_THG2_ID, SECT_THG2, LOADSIZE_ENTRY, &chkTHG2, sizeof(THG2),    &thg2Count},
+  {SECT_MASK_ID, SECT_MASK, LOADSIZE_MASK,   chkMASK, sizeof(chkMASK), NULL},
+  {SECT_STR_ID,  SECT_STR,  LOADSIZE_STR,   &chkSTR,  0,               NULL},
+  {SECT_UPRP_ID, SECT_UPRP, LOADSIZE_CONST,  chkUPRP, sizeof(chkUPRP), NULL},
+  {SECT_MRGN_ID, SECT_MRGN, LOADSIZE_MGRN,   chkMRGN, sizeof(chkMRGN), NULL},
+  {SECT_TRIG_ID, SECT_TRIG, LOADSIZE_ENTRY, &chkTRIG, sizeof(TRIG),    &trigCount},
+  {SECT_MBRF_ID, SECT_MBRF, LOADSIZE_ENTRY, &chkMBRF, sizeof(TRIG),    &mbrfCount},
+  {SECT_SPRP_ID, SECT_SPRP, LOADSIZE_CONST,  chkSPRP, sizeof(chkSPRP), NULL},
+  {SECT_FORC_ID, SECT_FORC, LOADSIZE_MAX,   &chkFORC, sizeof(chkFORC), &forcSize},
+  {SECT_UNIS_ID, SECT_UNIS, LOADSIZE_CONST, &chkUNIS, sizeof(chkUNIS), NULL},
+  {SECT_UPGS_ID, SECT_UPGS, LOADSIZE_CONST, &chkUPGS, sizeof(chkUPGS), NULL},
+  {SECT_TECS_ID, SECT_TECS, LOADSIZE_CONST, &chkTECS, sizeof(chkTECS), NULL},
+  {SECT_COLR_ID, SECT_COLR, LOADSIZE_CONST,  chkCOLR, sizeof(chkCOLR), NULL},
+  {SECT_PUPx_ID, SECT_PUPx, LOADSIZE_CONST, &chkPUPx, sizeof(chkPUPx), NULL},
+  {SECT_PTEx_ID, SECT_PTEx, LOADSIZE_CONST, &chkPTEx, sizeof(chkPTEx), NULL},
+  {SECT_UNIx_ID, SECT_UNIx, LOADSIZE_CONST, &chkUNIx, sizeof(chkUNIx), NULL},
+  {SECT_UPGx_ID, SECT_UPGx, LOADSIZE_CONST, &chkUPGx, sizeof(chkUPGx), NULL},
+  {SECT_TECx_ID, SECT_TECx, LOADSIZE_CONST, &chkTECx, sizeof(chkTECx), NULL},
+  {SECT_STRx_ID, SECT_STRx, LOADSIZE_STR,   &chkSTR,  0,               NULL},
+  {SECT_CRGB_ID, SECT_CRGB, LOADSIZE_CONST, &chkCRGB, sizeof(chkCRGB), NULL}
+};
+
+const ActDef Conditions[COND_COUNT] = {
+/*COND_NO_CONDITION               */ {0, 0},
+/*COND_COUNTDOWN_TIMER            */ {CDEF_NUMBER | CDEF_MODIFIER, 0},
+/*COND_COMMAND                    */ {CDEF_PLAYER | CDEF_NUMBER | CDEF_UNIT | CDEF_MODIFIER, 0},
+/*COND_BRING                      */ {CDEF_LOCATION | CDEF_PLAYER | CDEF_NUMBER | CDEF_UNIT | CDEF_MODIFIER, 0},
+/*COND_ACCUMULATE                 */ {CDEF_PLAYER | CDEF_NUMBER | CDEF_MODIFIER | CDEF_TYPE, 0},
+/*COND_KILL                       */ {CDEF_PLAYER | CDEF_NUMBER | CDEF_UNIT | CDEF_MODIFIER, 0},
+/*COND_COMMAND_THE_MOST           */ {CDEF_UNIT, 0},
+/*COND_COMMAND_THE_MOST_AT        */ {CDEF_LOCATION | CDEF_UNIT, 0},
+/*COND_MOST_KILLS                 */ {CDEF_UNIT, 0},
+/*COND_HIGHEST_SCORE              */ {CDEF_TYPE, 0},
+/*COND_MOST_RESOURCES             */ {CDEF_TYPE, 0},
+/*COND_SWITCH                     */ {CDEF_MODIFIER | CDEF_TYPE, 0},
+/*COND_ELAPSED_TIME               */ {CDEF_NUMBER | CDEF_MODIFIER, 0},
+/*COND_MISSION_BRIEFING           */ {ADEF_IGNORE, 0},
+/*COND_OPPONENTS                  */ {CDEF_PLAYER | CDEF_NUMBER | CDEF_MODIFIER, 0},
+/*COND_DEATHS                     */ {CDEF_PLAYER | CDEF_NUMBER | CDEF_UNIT | CDEF_MODIFIER | CDEF_FLAGS | CDEF_UNUSED, TRIG_UNITTYPEUSED},
+/*COND_COMMAND_THE_LEAST          */ {CDEF_UNIT, 0},
+/*COND_COMMAND_THE_LEAST_AT       */ {CDEF_LOCATION | CDEF_UNIT, 0},
+/*COND_LEAST_KILLS                */ {CDEF_UNIT, 0},
+/*COND_LOWEST_SCORE               */ {CDEF_TYPE, 0},
+/*COND_LEAST_RESOURCES            */ {CDEF_TYPE, 0},
+/*COND_SCORE                      */ {CDEF_PLAYER | CDEF_NUMBER | CDEF_MODIFIER | CDEF_TYPE, 0},
+/*COND_ALWAYS                     */ {ADEF_IGNORE, 0},
+/*COND_NEVER                      */ {ADEF_IGNORE, 0},
+};
+
+const ActDef Actions[ACT_COUNT] = {
+/*ACT_NO_ACTION                   */ {0, 0},
+/*ACT_VICTORY                     */ {0, 0},
+/*ACT_DEFEAT                      */ {0, 0},
+/*ACT_PRESERVE_TRIGGER            */ {ADEF_VALID_IGNORE, 0},
+/*ACT_WAIT                        */ {ADEF_TIME, 0},
+/*ACT_PAUSE_GAME                  */ {ADEF_SP_ACT, 0},
+/*ACT_UNPAUSE_GAME                */ {ADEF_SP_ACT, 0},
+/*ACT_TRANSMISSION                */ {ADEF_LOCATION | ADEF_TEXT | ADEF_WAV | ADEF_DEST | ADEF_TYPE | ADEF_MODIFIER | ADEF_FLAGS, TRIG_ALWAYSDISPLAY},
+/*ACT_PLAY_WAV                    */ {ADEF_WAV, 0},
+/*ACT_DISPLAY_TEXT_MESSAGE        */ {ADEF_TEXT | ADEF_FLAGS, TRIG_ALWAYSDISPLAY},
+/*ACT_CENTER_VIEW                 */ {ADEF_LOCATION, 0},
+/*ACT_CREATE_UNITS_WITH_PROPERTIES*/ {ADEF_LOCATION | ADEF_PLAYER | ADEF_DEST | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_SET_MISSION_OBJECTIVES      */ {ADEF_TEXT, 0},
+/*ACT_SET_SWITCH                  */ {ADEF_DEST | ADEF_MODIFIER, 0},
+/*ACT_SET_COUNTDOWN_TIMER         */ {ADEF_MODIFIER | ADEF_TIME, 0},
+/*ACT_RUN_AI_SCRIPT               */ {ADEF_DEST, 0},
+/*ACT_RUN_AI_SCRIPT_AT            */ {ADEF_LOCATION | ADEF_DEST, 0},
+/*ACT_LEADERBOARD_CONTROL         */ {ADEF_TEXT | ADEF_TYPE, 0},
+/*ACT_LEADERBOARD_CONTROL_AT      */ {ADEF_LOCATION | ADEF_TEXT | ADEF_TYPE, 0},
+/*ACT_LEADERBOARD_RESOURCES       */ {ADEF_TEXT | ADEF_TYPE, 0},
+/*ACT_LEADERBOARD_KILLS           */ {ADEF_TEXT | ADEF_TYPE, 0},
+/*ACT_LEADERBOARD_POINTS          */ {ADEF_TEXT | ADEF_TYPE, 0},
+/*ACT_KILL_UNIT                   */ {ADEF_PLAYER | ADEF_TYPE, 0},
+/*ACT_KILL_UNITS_AT               */ {ADEF_LOCATION | ADEF_PLAYER | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_REMOVE_UNIT                 */ {ADEF_PLAYER | ADEF_TYPE, 0},
+/*ACT_REMOVE_UNITS_AT             */ {ADEF_LOCATION | ADEF_PLAYER | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_SET_RESOURCES               */ {ADEF_PLAYER | ADEF_DEST | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_SET_SCORE                   */ {ADEF_PLAYER | ADEF_DEST | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_MINIMAP_PING                */ {ADEF_LOCATION, 0},
+/*ACT_TALKING_PORTRAIT            */ {ADEF_TIME | ADEF_TYPE, 0},
+/*ACT_MUTE_UNIT_SPEECH            */ {0, 0},
+/*ACT_UNMUTE_UNIT_SPEECH          */ {0, 0},
+/*ACT_LEADERBOARD_COMPUTER_PLAYERS*/ {ADEF_MODIFIER, 0},
+/*ACT_LEADERBOARD_GOAL_CONTROL    */ {ADEF_TEXT | ADEF_DEST | ADEF_TYPE, 0},
+/*ACT_LEADERBOARD_GOAL_CONTROL_AT */ {ADEF_LOCATION | ADEF_TEXT | ADEF_DEST | ADEF_TYPE, 0},
+/*ACT_LEADERBOARD_GOAL_RESOURCES  */ {ADEF_TEXT | ADEF_DEST | ADEF_TYPE, 0},
+/*ACT_LEADERBOARD_GOAL_KILLS      */ {ADEF_TEXT | ADEF_DEST | ADEF_TYPE, 0},
+/*ACT_LEADERBOARD_GOAL_POINTS     */ {ADEF_TEXT | ADEF_DEST | ADEF_TYPE, 0},
+/*ACT_MOVE_LOCATION               */ {ADEF_LOCATION | ADEF_PLAYER | ADEF_DEST_LOC | ADEF_TYPE, 0},
+/*ACT_MOVE_UNITS                  */ {ADEF_LOCATION | ADEF_PLAYER | ADEF_DEST_LOC | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_LEADERBOARD_GREED           */ {ADEF_DEST, 0},
+/*ACT_SET_NEXT_SCENARIO           */ {ADEF_TEXT | ADEF_SP_ACT, 0},
+/*ACT_SET_DOODAD_STATE            */ {ADEF_LOCATION | ADEF_PLAYER | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_SET_INVINCIBILITY           */ {ADEF_LOCATION | ADEF_PLAYER | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_CREATE_UNITS                */ {ADEF_LOCATION | ADEF_PLAYER | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_SET_DEATHS                  */ {ADEF_PLAYER | ADEF_DEST | ADEF_TYPE | ADEF_MODIFIER | ADEF_FLAGS | ADEF_UNUSED, TRIG_UNITTYPEUSED},
+/*ACT_ORDER                       */ {ADEF_LOCATION | ADEF_PLAYER | ADEF_DEST_LOC | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_COMMENT                     */ {ADEF_IGNORE, 0},
+/*ACT_GIVE_UNITS_TO_PLAYER        */ {ADEF_LOCATION | ADEF_PLAYER | ADEF_DEST | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_MODIFY_UNIT_HIT_POINTS      */ {ADEF_LOCATION | ADEF_PLAYER | ADEF_DEST | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_MODIFY_UNIT_ENERGY          */ {ADEF_LOCATION | ADEF_PLAYER | ADEF_DEST | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_MODIFY_UNIT_SHIELD_POINTS   */ {ADEF_LOCATION | ADEF_PLAYER | ADEF_DEST | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_MODIFY_UNIT_RESOURCE_AMOUNT */ {ADEF_LOCATION | ADEF_PLAYER | ADEF_DEST | ADEF_MODIFIER, 0},
+/*ACT_MODIFY_UNIT_HANGAR_COUNT    */ {ADEF_LOCATION | ADEF_PLAYER | ADEF_DEST | ADEF_TYPE | ADEF_MODIFIER, 0},
+/*ACT_PAUSE_TIMER                 */ {0, 0},
+/*ACT_UNPAUSE_TIMER               */ {0, 0},
+/*ACT_DRAW                        */ {0, 0},
+/*ACT_SET_ALLIANCE_STATUS         */ {ADEF_PLAYER | ADEF_TYPE, 0},
+/*ACT_DISABLE_DEBUG_MODE          */ {ADEF_SP_ACT, 0},
+/*ACT_ENABLE_DEBUG_MODE           */ {ADEF_SP_ACT, 0},
+};
+
+const ActDef BriefingActions[BACT_COUNT] = {
+/*BACT_NO_ACTION                  */ {0, 0},
+/*BACT_WAIT                       */ {ADEF_TIME, 0},
+/*BACT_PLAY_WAV                   */ {ADEF_WAV | ADEF_TIME, 0},
+/*BACT_TEXT_MESSAGE               */ {ADEF_TEXT | ADEF_TIME, 0},
+/*BACT_MISSION_OBJECTIVES         */ {ADEF_TEXT, 0},
+/*BACT_SHOW_PORTRAIT              */ {ADEF_PLAYER | ADEF_TYPE, 0},
+/*BACT_HIDE_PORTRAIT              */ {ADEF_PLAYER, 0},
+/*BACT_DISPLAY_SPEAKING_PORTRAIT  */ {ADEF_TIME | ADEF_PLAYER, 0},
+/*BACT_TRANSMISSION               */ {ADEF_TEXT | ADEF_WAV | ADEF_TIME | ADEF_PLAYER | ADEF_MODIFIER, 0},
+/*BACT_SKIP_TUTORIAL              */ {ADEF_SP_ACT, 0},
+};
 
 bool loadedSections[SECTION_COUNT] = {0};
 u8 usedUnits[228] = {0}; // Uses USEDUNIT_* flags to determine if a unit is preplaced, enabled, or can be built in-game
@@ -86,6 +226,11 @@ void writeTRIGSection(u8* buffer, u32* pointer);
 bool trigcmp(TRIG* a, TRIG* b);
 void calcChunking(int count, int *blocks, int *chunkSize);
 
+void initTrigIterator(TrigIterator* ti, u32 flags);
+bool getNextTrig(TrigIterator* ti);
+CONDITION* getNextCondition(TrigIterator* ti);
+ACTION* getNextAction(TrigIterator* ti);
+
 void procVCOD();
 void procMTXM();
 void procPUNI();
@@ -113,15 +258,24 @@ void procCRGB();
 
 void testBuildable();
 
+
+
+bool loadSection(u8* data, u32 filesize, SectionDef* section);
+
 void loadCHKData(u8* data, u32 filesize){
-  u32 fptr = 0;
-  CHKH head;
-  u8* strData;
-  u32 strSize;
-  u32 strOffs;
   u32 i;
   
   clearCHK();
+  
+  for(i = 0; i < SECTION_COUNT; i++){
+    loadedSections[sections[i].sectionID] = loadSection(data, filesize, &sections[i]);
+  }
+}
+
+bool loadSection(u8* data, u32 filesize, SectionDef* section){
+  u32 fptr = 0;
+  CHKH head;
+  bool found = false;
   
   while((fptr + sizeof(CHKH)) <= filesize){
     head = *(CHKH*)(data + fptr);
@@ -130,281 +284,130 @@ void loadCHKData(u8* data, u32 filesize){
       // read past end of file
       break;
     }
-    switch(head.name){
-      case SECT_TYPE:
-        if(head.size == sizeof(chkTYPE)){
-          memcpy(&chkTYPE, data+fptr, sizeof(chkTYPE));
-          loadedSections[SECT_TYPE_ID] = true;
-        }
-        break;
-      case SECT_VER:
-        if(head.size == sizeof(chkVER)){
-          memcpy(&chkVER, data+fptr, sizeof(chkVER));
-          loadedSections[SECT_VER_ID] = true;
-        }
-        break;
-      case SECT_VCOD:
-        if(head.size == sizeof(VCOD)){
-          memcpy(&chkVCOD, data+fptr, sizeof(VCOD));
-          loadedSections[SECT_VCOD_ID] = true;
-        }
-        break;
-      case SECT_OWNR:
-        if(head.size == sizeof(chkOWNR)){
-          memcpy(chkOWNR, data+fptr, sizeof(chkOWNR));
-          loadedSections[SECT_OWNR_ID] = true;
-        }
-        break;
-      case SECT_ERA:
-        if(head.size == sizeof(chkERA)){
-          memcpy(&chkERA, data+fptr, sizeof(chkERA));
-          chkERA &= 7;
-          loadedSections[SECT_ERA_ID] = true;
-        }
-        break;
-      case SECT_DIM:
-        if(head.size == sizeof(DIM)){
-          memcpy(&chkDIM, data+fptr, sizeof(DIM));
-          mapSize = chkDIM.w * chkDIM.h;
-          loadedSections[SECT_DIM_ID] = true;
-        }
-        break;
-      case SECT_SIDE:
-        if(head.size == sizeof(chkSIDE)){
-          memcpy(chkSIDE, data+fptr, sizeof(chkSIDE));
-          loadedSections[SECT_SIDE_ID] = true;
-        }
-        break;
-      case SECT_MTXM:
-        if(head.size <= sizeof(chkMTXM)){
-          if(mtxmSize*2 < head.size){ // only get maximum MTXM size -- a second, smaller MTXM section doesn't make the later tiles go away
-            mtxmSize = ((head.size + 1) / 2); // ceil(head.size / 2)
+    if(head.name == section->sectionName) {
+      switch(section->loadType) {
+        case LOADSIZE_CONST:
+          if(head.size == section->size){
+            memcpy(section->data, data+fptr, head.size);
+            found = true;
           }
-          memcpy(chkMTXM, data+fptr, head.size);
-          loadedSections[SECT_MTXM_ID] = true;
-        }
-        break;
-      case SECT_PUNI:
-        if(head.size == sizeof(PUNI)){
-          memcpy(&chkPUNI, data+fptr, sizeof(PUNI));
-          loadedSections[SECT_PUNI_ID] = true;
-        }
-        break;
-      case SECT_UPGR:
-        if(head.size == sizeof(UPGR)){
-          memcpy(&chkUPGR, data+fptr, sizeof(UPGR));
-          loadedSections[SECT_UPGR_ID] = true;
-        }
-        break;
-      case SECT_PTEC:
-        if(head.size == sizeof(PTEC)){
-          memcpy(&chkPTEC, data+fptr, sizeof(PTEC));
-          loadedSections[SECT_PTEC_ID] = true;
-        }
-        break;
-      case SECT_UNIT:
-        if((head.size % sizeof(UNIT)) == 0){
-          chkUNIT = realloc(chkUNIT, unitCount * sizeof(UNIT) + head.size);
-          memcpy(&chkUNIT[unitCount], data+fptr, head.size);
-          unitCount += head.size / sizeof(UNIT);
-          loadedSections[SECT_UNIT_ID] = true;
-        }
-        break;
-      case SECT_THG2:
-        if((head.size % sizeof(THG2)) == 0){
-          chkTHG2 = realloc(chkTHG2, thg2Count * sizeof(THG2) + head.size);
-          memcpy(&chkTHG2[thg2Count], data+fptr, head.size);
-          thg2Count += head.size / sizeof(THG2);
-          loadedSections[SECT_THG2_ID] = true;
-        }
-        break;
-      case SECT_MASK:
-        if(head.size > sizeof(chkMASK)){ // Always valid, although extra bytes aren't necessary
-          memcpy(chkMASK, data+fptr, sizeof(chkMASK));
-        }else{
-          memcpy(chkMASK, data+fptr, head.size);
-        }
-        loadedSections[SECT_MASK_ID] = true;
-        break;
-      case SECT_STR:
-        if(chkSTR.offsets != NULL){
-          for(i = 0; i < chkSTR.count; i++){
-            if(chkSTR.data[i] != NULL) free(chkSTR.data[i]);
+          break;
+        
+        case LOADSIZE_MAX:
+          if(head.size <= section->size){
+            if(section->count != NULL){
+              if(head.name == SECT_MTXM){
+                *(section->count) = (head.size + 1) / 2;
+              }else{
+                *(section->count) = head.size;
+              }
+            }
+            if(head.name == SECT_FORC) memset(section->data, 0, section->size);
+            memcpy(section->data, data+fptr, head.size);
+            found = true;
           }
-          free(chkSTR.data);
+          break;
+        
+        case LOADSIZE_ENTRY:
+          if((head.size % section->size) == 0){
+            // a bit of pointer hell
+            u8* innerPtr = *(u8**)(section->data);
+            innerPtr = realloc(innerPtr, *(section->count) * section->size + head.size);
+            memcpy(&innerPtr[*(section->count) * section->size], data+fptr, head.size);
+            *(section->count) += head.size / section->size;
+            *(u8**)(section->data) = innerPtr;
+            found = true;
+          }
+          break;
+        
+        case LOADSIZE_MGRN:
+          if(head.size == 64*sizeof(MRGN) || head.size == 255*sizeof(MRGN)){
+            use255Locations = (head.size == 255*sizeof(MRGN));
+            memcpy(section->data, data+fptr, head.size);
+            found = true;
+          }
+          break;
+        
+        case LOADSIZE_MASK:
+          if(head.size > section->size){
+            // trim excess data
+            memcpy(section->data, data+fptr, section->size);
+          }else if(head.size != 0){
+            memcpy(section->data, data+fptr, head.size);
+          }
+          found = true;
+          break;
+        
+        case LOADSIZE_STR:
+        {
+          u32 i;
+          u8* strData;
+          u32 strSize;
+          u32 strOffs;
+          u32 dataSize;
+          if(head.name == SECT_STRx){
+            dataSize = sizeof(u32);
+          }else{
+            dataSize = sizeof(u16);
+          }
+          // Clear any previously loaded strings
+          if(chkSTR.data != NULL){
+            for(i = 0; i < chkSTR.count; i++){
+              if(chkSTR.data[i] != NULL) free(chkSTR.data[i]);
+            }
+            free(chkSTR.data);
+            chkSTR.data = NULL;
+          }
           if(chkSTR.offsets != NULL) free(chkSTR.offsets);
           chkSTR.offsets = NULL;
           if(chkSTR.offsetsX != NULL) free(chkSTR.offsetsX);
           chkSTR.offsetsX = NULL;
-          free(usedStrings);
-          free(stringReindex);
-        }
-        chkSTR.count = 0;
-        memcpy(&chkSTR.count, data+fptr, sizeof(u16));
-        chkSTR.offsets = malloc(chkSTR.count * sizeof(u16));
-        chkSTR.data = malloc(chkSTR.count * sizeof(u8*));
-        strData = malloc(head.size - (chkSTR.count + 1)*sizeof(u16) + 1);
-        strData[head.size - (chkSTR.count + 1)*sizeof(u16)] = 0; // ensure the last string is null-terminated
-        memcpy(chkSTR.offsets, data + fptr + sizeof(u16), chkSTR.count * sizeof(u16));
-        memcpy(strData, data + fptr + (chkSTR.count + 1)*sizeof(u16), head.size - (chkSTR.count + 1)*sizeof(u16));
-        for(i = 0; i < chkSTR.count; i++){
-          chkSTR.data[i] = NULL;
-          if(chkSTR.offsets[i] <= head.size){
-            strOffs = chkSTR.offsets[i] - (chkSTR.count + 1)*sizeof(u16);
-            strSize = strlen(strData + strOffs);
-            if(strSize != 0){
-              chkSTR.data[i] = malloc(strSize + 1);
-              strcpy(chkSTR.data[i], strData + strOffs);
-            }
+          if(usedStrings != NULL) free(usedStrings);
+          usedStrings = NULL;
+          if(stringReindex != NULL) free(stringReindex);
+          stringReindex = NULL;
+          //
+          chkSTR.count = 0;
+          memcpy(&chkSTR.count, data+fptr, dataSize);
+          chkSTR.data = malloc(chkSTR.count * sizeof(u8*));
+          if(dataSize == sizeof(u16)){
+            chkSTR.offsets = malloc(chkSTR.count * sizeof(u16));
+            memcpy(chkSTR.offsets, data + fptr + sizeof(u16), chkSTR.count * sizeof(u16));
+          }else{
+            chkSTR.offsetsX = malloc(chkSTR.count * sizeof(u32));
+            memcpy(chkSTR.offsetsX, data + fptr + sizeof(u32), chkSTR.count * sizeof(u32));
           }
-        }
-        usedStrings = calloc(chkSTR.count + 1, sizeof(u8));
-        stringReindex = calloc(chkSTR.count + 1, sizeof(u32));
-        free(strData);
-        loadedSections[SECT_STR_ID] = true;
-        break;
-      case SECT_STRx:
-        if(chkSTR.offsets != NULL){
+          strData = malloc(head.size - (chkSTR.count + 1)*dataSize + 1);
+          strData[head.size - (chkSTR.count + 1)*dataSize] = 0; // ensure the last string is null-terminated
+          memcpy(strData, data + fptr + (chkSTR.count + 1)*dataSize, head.size - (chkSTR.count + 1)*dataSize);
           for(i = 0; i < chkSTR.count; i++){
-            if(chkSTR.data[i] != NULL) free(chkSTR.data[i]);
-          }
-          free(chkSTR.data);
-          if(chkSTR.offsets != NULL) free(chkSTR.offsets);
-          chkSTR.offsets = NULL;
-          if(chkSTR.offsetsX != NULL) free(chkSTR.offsetsX);
-          chkSTR.offsetsX = NULL;
-          free(usedStrings);
-          free(stringReindex);
-        }
-        chkSTR.count = 0;
-        memcpy(&chkSTR.count, data+fptr, sizeof(u32));
-        chkSTR.offsets = malloc(chkSTR.count * sizeof(u32));
-        chkSTR.data = malloc(chkSTR.count * sizeof(u8*));
-        strData = malloc(head.size - (chkSTR.count + 1)*sizeof(u32) + 1);
-        strData[head.size - (chkSTR.count + 1)*sizeof(u32)] = 0; // ensure the last string is null-terminated
-        memcpy(chkSTR.offsetsX, data + fptr + sizeof(u32), chkSTR.count * sizeof(u32));
-        memcpy(strData, data + fptr + (chkSTR.count + 1)*sizeof(u32), head.size - (chkSTR.count + 1)*sizeof(u32));
-        for(i = 0; i < chkSTR.count; i++){
-          chkSTR.data[i] = NULL;
-          if(chkSTR.offsets[i] <= head.size){
-            strOffs = chkSTR.offsets[i] - (chkSTR.count + 1)*sizeof(u32);
-            strSize = strlen(strData + strOffs);
-            if(strSize != 0){
-              chkSTR.data[i] = malloc(strSize + 1);
-              strcpy(chkSTR.data[i], strData + strOffs);
+            chkSTR.data[i] = NULL;
+            if(dataSize == sizeof(u16)){
+              strOffs = chkSTR.offsets[i];
+            }else{
+              strOffs = chkSTR.offsetsX[i];
+            }
+            if(strOffs <= head.size){
+              strOffs -= (chkSTR.count + 1)*dataSize;
+              strSize = strlen(strData + strOffs);
+              if(strSize != 0){
+                chkSTR.data[i] = malloc(strSize + 1);
+                strcpy(chkSTR.data[i], strData + strOffs);
+              }
             }
           }
+          usedStrings = calloc(chkSTR.count + 1, sizeof(u8));
+          stringReindex = calloc(chkSTR.count + 1, sizeof(u32));
+          free(strData);
+          found = true;
+          break;
         }
-        usedStrings = calloc(chkSTR.count + 1, sizeof(u8));
-        stringReindex = calloc(chkSTR.count + 1, sizeof(u32));
-        free(strData);
-        loadedSections[SECT_STRx_ID] = true;
-        break;
-      case SECT_UPRP:
-        if(head.size == sizeof(chkUPRP)){
-          memcpy(chkUPRP, data+fptr, sizeof(chkUPRP));
-          loadedSections[SECT_UPRP_ID] = true;
-        }
-        break;
-      case SECT_MRGN:
-        if(head.size == 64*sizeof(MRGN) || head.size == 255*sizeof(MRGN)){
-          use255Locations = (head.size == 255*sizeof(MRGN));
-          memcpy(chkMRGN, data+fptr, head.size);
-          loadedSections[SECT_MRGN_ID] = true;
-        }
-       break;
-      case SECT_TRIG:
-        if((head.size % sizeof(TRIG)) == 0){
-          chkTRIG = realloc(chkTRIG, trigCount * sizeof(TRIG) + head.size);
-          memcpy(&chkTRIG[trigCount], data+fptr, head.size);
-          trigCount += head.size / sizeof(TRIG);
-          loadedSections[SECT_TRIG_ID] = true;
-        }
-        break;
-      case SECT_MBRF:
-        if((head.size % sizeof(TRIG)) == 0){
-          chkMBRF = realloc(chkMBRF, mbrfCount * sizeof(TRIG) + head.size);
-          memcpy(&chkMBRF[mbrfCount], data+fptr, head.size);
-          mbrfCount += head.size / sizeof(TRIG);
-          loadedSections[SECT_MBRF_ID] = true;
-        }
-        break;
-      case SECT_SPRP:
-        if(head.size == sizeof(chkSPRP)){
-          memcpy(chkSPRP, data+fptr, sizeof(chkSPRP));
-          loadedSections[SECT_SPRP_ID] = true;
-        }
-        break;
-      case SECT_FORC:
-        if(head.size <= sizeof(FORC)){
-          memset(&chkFORC, 0, sizeof(FORC));
-          memcpy(&chkFORC, data+fptr, head.size);
-          loadedSections[SECT_FORC_ID] = true;
-        }
-        break;
-      case SECT_UNIS:
-        if(head.size == sizeof(UNIS)){
-          memcpy(&chkUNIS, data+fptr, sizeof(UNIS));
-          loadedSections[SECT_UNIS_ID] = true;
-        }
-        break;
-      case SECT_UPGS:
-        if(head.size == sizeof(UPGS)){
-          memcpy(&chkUPGS, data+fptr, sizeof(UPGS));
-          loadedSections[SECT_UPGS_ID] = true;
-        }
-        break;
-      case SECT_TECS:
-        if(head.size == sizeof(TECS)){
-          memcpy(&chkTECS, data+fptr, sizeof(TECS));
-          loadedSections[SECT_TECS_ID] = true;
-        }
-        break;
-      case SECT_COLR:
-        if(head.size == sizeof(chkCOLR)){
-          memcpy(chkCOLR, data+fptr, sizeof(chkCOLR));
-          loadedSections[SECT_COLR_ID] = true;
-        }
-        break;
-      case SECT_PUPx:
-        if(head.size == sizeof(PUPx)){
-          memcpy(&chkPUPx, data+fptr, sizeof(PUPx));
-          loadedSections[SECT_PUPx_ID] = true;
-        }
-        break;
-      case SECT_PTEx:
-        if(head.size == sizeof(PTEx)){
-          memcpy(&chkPTEx, data+fptr, sizeof(PTEx));
-          loadedSections[SECT_PTEx_ID] = true;
-        }
-        break;
-      case SECT_UNIx:
-        if(head.size == sizeof(UNIx)){
-          memcpy(&chkUNIx, data+fptr, sizeof(UNIx));
-          loadedSections[SECT_UNIx_ID] = true;
-        }
-        break;
-      case SECT_UPGx:
-        if(head.size == sizeof(UPGx)){
-          memcpy(&chkUPGx, data+fptr, sizeof(UPGx));
-          loadedSections[SECT_UPGx_ID] = true;
-        }
-       break;
-      case SECT_TECx:
-        if(head.size == sizeof(TECx)){
-          memcpy(&chkTECx, data+fptr, sizeof(TECx));
-          loadedSections[SECT_TECx_ID] = true;
-        }
-        break;
-      case SECT_CRGB:
-        if(head.size == sizeof(CRGB)){
-          memcpy(&chkCRGB, data+fptr, sizeof(CRGB));
-          loadedSections[SECT_CRGB_ID] = true;
-        }
-        break;
+      }
     }
     fptr += head.size;
   }
+  
+  return found;
 }
 
 void clearCHK(){
@@ -473,6 +476,7 @@ void clearCHK(){
   unitUnique = 0;
   unitWCount = 0;
   thg2Count = 0;
+  forcSize = 0;
   memset(loadedSections, 0, sizeof(loadedSections));
   memset(usedUnits, 0, sizeof(usedUnits));
   memset(usedWeapons, 0, sizeof(usedWeapons));
@@ -608,8 +612,10 @@ unsigned int getOutputType(){
 }
 
 void genDefaultListfile(){
-  u32 i,j;
+  u32 i;
   u8 wavIDs[chkSTR.count];
+  TrigIterator ti;
+  ACTION* a;
   
   FILE* f = fopen(defaultListfile, "w");
   if(f == NULL) return;
@@ -617,22 +623,19 @@ void genDefaultListfile(){
   
   memset(wavIDs, 0, chkSTR.count);
   
-  for(i = 0; i < trigCount; i++){
-    // include even non-never & disabled triggers for a (hopefully) complete file list
-    for(j = 0; j < 64; j++){
-      if(chkTRIG[i].actions[j].action == 0) break;
-      if((chkTRIG[i].actions[j].action == ACT_TRANSMISSION || chkTRIG[i].actions[j].action == ACT_PLAY_WAV) && chkTRIG[i].actions[j].wav != 0 && chkTRIG[i].actions[j].wav < chkSTR.count){
-        wavIDs[chkTRIG[i].actions[j].wav-1] = true;
-      }
+  initTrigIterator(&ti, TI_TRIGGERS | TI_ALLOW_DISABLED | TI_AUTO_NEXT_TRIG);
+  while(a = getNextAction(&ti)){
+    if(!(Actions[a->action].fields & ADEF_WAV)) continue;
+    if(a->wav != 0 && a->wav < chkSTR.count){
+      wavIDs[a->wav-1] = true;
     }
   }
   
-  for(i = 0; i < mbrfCount; i++){
-    for(j = 0; j < 64; j++){
-      if(chkMBRF[i].actions[j].action == 0) break;
-      if((chkMBRF[i].actions[j].action == BACT_PLAY_WAV || chkMBRF[i].actions[j].action == BACT_TRANSMISSION) && chkMBRF[i].actions[j].wav != 0 && chkMBRF[i].actions[j].wav < chkSTR.count){
-        wavIDs[chkMBRF[i].actions[j].wav-1] = true;
-      }
+  initTrigIterator(&ti, TI_BRIEFINGS | TI_ALLOW_DISABLED | TI_AUTO_NEXT_TRIG);
+  while(a = getNextAction(&ti)){
+    if(!(BriefingActions[a->action].fields & ADEF_WAV)) continue;
+    if(a->wav != 0 && a->wav < chkSTR.count){
+      wavIDs[a->wav-1] = true;
     }
   }
   
@@ -648,8 +651,9 @@ void genDefaultListfile(){
 
 void countWAVs(MapFile* mapFiles, u32 mapFileCount){
   u32 i,j;
-  bool used;
   s32 wavIDs[chkSTR.count];
+  TrigIterator ti;
+  ACTION* a;
   
   // get string IDs corresponding to MPQ files
   for(i = 0; i < chkSTR.count; i++){
@@ -663,48 +667,20 @@ void countWAVs(MapFile* mapFiles, u32 mapFileCount){
   }
   
   // count trigger WAVs
-  for(i = 0; i < trigCount; i++){
-    used = true; // Used unless "Never"
-    for(j = 0; j < 16; j++){
-      if(chkTRIG[i].conditions[j].condition == COND_NO_CONDITION) break;
-      if(chkTRIG[i].conditions[j].condition == COND_NEVER && !(chkTRIG[i].conditions[j].flags & TRIG_DISABLED)){
-        used = false;
-        break;
-      }
-    }
-    if(!used) continue;
-    used = false;
-    for(j = PLAYER_1; j <= PLAYER_FORCE_4; j++){
-      if(j == PLAYER_9) j = PLAYER_ALL_PLAYERS; // skip unused players
-      if(chkTRIG[i].players[j] != 0){
-        used = true;
-        break;
-      }
-    }
-    if(!used) continue;
-    for(j = 0; j < 64; j++){
-      if((chkTRIG[i].actions[j].action == ACT_TRANSMISSION || chkTRIG[i].actions[j].action == ACT_PLAY_WAV) && chkTRIG[i].actions[j].wav > 0 && chkTRIG[i].actions[j].wav < chkSTR.count){
-        if(wavIDs[chkTRIG[i].actions[j].wav-1] > -1) mapFiles[wavIDs[chkTRIG[i].actions[j].wav-1]].wavUsage.trig++;
-      }
+  initTrigIterator(&ti, TI_TRIGGERS | TI_VALIDATE_CONDITIONS | TI_VALIDATE_PLAYERS | TI_AUTO_NEXT_TRIG);
+  while(a = getNextAction(&ti)){
+    if(!(Actions[a->action].fields & ADEF_WAV)) continue;
+    if(a->wav != 0 && a->wav < chkSTR.count && wavIDs[a->wav-1] > -1){
+      mapFiles[wavIDs[a->wav-1]].wavUsage.trig++;
     }
   }
   
   // count briefing WAVs
-  for(i = 0; i < mbrfCount; i++){
-    if(chkMBRF[i].conditions[0].condition != COND_MISSION_BRIEFING) continue;
-    used = false;
-    for(j = PLAYER_1; j <= PLAYER_FORCE_4; j++){
-      if(j == PLAYER_9) j = PLAYER_ALL_PLAYERS; // skip unused players
-      if(chkMBRF[i].players[j] != 0){
-        used = true;
-        break;
-      }
-    }
-    if(!used) continue;
-    for(j = 0; j < 64; j++){
-      if((chkMBRF[i].actions[j].action == BACT_PLAY_WAV || chkMBRF[i].actions[j].action == BACT_TRANSMISSION) && chkMBRF[i].actions[j].wav > 0 && chkMBRF[i].actions[j].wav < chkSTR.count){
-        if(wavIDs[chkMBRF[i].actions[j].wav-1] > -1) mapFiles[wavIDs[chkMBRF[i].actions[j].wav-1]].wavUsage.mbrf++;
-      }
+  initTrigIterator(&ti, TI_BRIEFINGS | TI_VALIDATE_CONDITIONS | TI_VALIDATE_PLAYERS | TI_AUTO_NEXT_TRIG);
+  while(a = getNextAction(&ti)){
+    if(!(BriefingActions[a->action].fields & ADEF_WAV)) continue;
+    if(a->wav != 0 && a->wav < chkSTR.count && wavIDs[a->wav-1] > -1){
+      mapFiles[wavIDs[a->wav-1]].wavUsage.mbrf++;
     }
   }
 }
@@ -1052,7 +1028,7 @@ u32 createUMSCHK(u8* buffer, int outputType){
   
   writeSection(buffer, &pointer, SECT_MBRF, mbrfCount*sizeof(TRIG), chkMBRF);
   writeSection(buffer, &pointer, SECT_SPRP, sizeof(chkSPRP), chkSPRP);
-  writeSection(buffer, &pointer, SECT_FORC, sizeof(FORC), &chkFORC); // doesn't adjust FORC size ????
+  writeSection(buffer, &pointer, SECT_FORC, forcSize, &chkFORC);
   if((outputType & (MODE_UMS_SIMPLESC | MODE_UMS_SIMPLEEX | MODE_UMS_STARCRAFT | MODE_UMS_EXTENDED)) != 0){
     writeSection(buffer, &pointer, SECT_UNIS, sizeof(UNIS), &chkUNIS);
     writeSection(buffer, &pointer, SECT_UPGS, sizeof(UPGS), &chkUPGS);
@@ -1361,6 +1337,146 @@ void calcChunking(int count, int *blocks, int *chunkSize){
   return;
 }
 
+// initializes iterator struct
+void initTrigIterator(TrigIterator* ti, u32 flags){
+  if(flags & TI_BRIEFINGS){
+    ti->section = chkMBRF;
+    ti->maxIndex = mbrfCount;
+  }else{
+    ti->section = chkTRIG;
+    ti->maxIndex = trigCount;
+  }
+  ti->flags = flags & ~TI__HAS_VALID_TRIG;
+  ti->trigIndex = 0;
+}
+
+// advances iterator to the next valid trigger block. returns true if one exists or false if there are no more triggers
+bool getNextTrig(TrigIterator* ti){
+  u32 i,j;
+  bool used;
+  
+  if(ti->flags & TI__HAS_VALID_TRIG){
+    // validate next ID
+    i = ti->trigIndex + 1;
+  }else{
+    // validate current ID
+    i = ti->trigIndex;
+  }
+  ti->flags &= ~TI__HAS_VALID_TRIG;
+  
+  for( ; i < ti->maxIndex; i++){
+    if(ti->flags & TI_VALIDATE_CONDITIONS){
+      if(ti->flags & TI_BRIEFINGS){
+        // only used if first condition is Mission Briefing
+        if(ti->section[i].conditions[0].condition != COND_MISSION_BRIEFING) continue;
+      }else{
+        used = true; // used unless "never"
+        for(j = 0; j < 16; j++){
+          if(ti->section[i].conditions[j].condition == COND_NO_CONDITION) break; // stop looking
+          if((ti->section[i].conditions[j].condition == COND_NEVER || ti->section[i].conditions[j].condition == COND_MISSION_BRIEFING) && (ti->section[i].conditions[j].flags & TRIG_DISABLED) != 0){
+            used = false;
+            break;
+          }
+        }
+        if(!used) continue;
+      }
+    }
+    if(ti->flags & TI_VALIDATE_ACTIONS){
+      used = false; // not used unless a useful action exists
+      for(j = 0; j < 64; j++){
+        if(ti->section[i].actions[j].action == ACT_NO_ACTION) break; // stop looking
+        if((ti->section[i].actions[j].flags & TRIG_DISABLED) && !(ti->flags & TI_ALLOW_DISABLED)) continue;
+        if(ti->flags & TI_BRIEFINGS){
+          if(ti->section[i].actions[j].action >= BACT_COUNT) continue;
+          if(delSPActions && (BriefingActions[ti->section[i].actions[j].action].fields & ADEF_SP_ACT)) continue;
+        }else{
+          if(ti->section[i].actions[j].action >= ACT_COUNT) continue;
+          if(Actions[ti->section[i].actions[j].action].fields & ADEF_VALID_IGNORE) continue;
+          if(delSPActions && (Actions[ti->section[i].actions[j].action].fields & ADEF_SP_ACT)) continue;
+        }
+        used = true;
+        break;
+      }
+      if(!used) continue;
+    }
+    if(ti->flags & TI_VALIDATE_PLAYERS){
+      used = false;
+      for(j = PLAYER_1; j <= PLAYER_FORCE_4; j++){
+        if(j == PLAYER_9) j = PLAYER_ALL_PLAYERS; // skip unused players
+        // check used players?
+        if(ti->section[i].players[j] != 0){
+          used = true;
+          break;
+        }
+      }
+      if(!used) continue;
+    }
+    
+    // all validation checks passed
+    ti->trigIndex = i;
+    ti->condIndex = 0;
+    ti->actIndex = 0;
+    ti->flags |= TI__HAS_VALID_TRIG;
+    return true;
+  }
+  ti->trigIndex = i;
+  return false;
+}
+
+// returns pointer next valid condition or NULL if none exist
+CONDITION* getNextCondition(TrigIterator* ti){
+  u32 i;
+  // return if there are no conditions
+  if(!(ti->flags & TI__HAS_VALID_TRIG) || ti->condIndex == 16) return NULL;
+  
+  for(i = ti->condIndex; i < 16; i++){
+    if(ti->section[ti->trigIndex].conditions[i].condition == COND_NO_CONDITION) break;
+    if((ti->section[ti->trigIndex].conditions[i].flags & TRIG_DISABLED) && !(ti->flags & TI_ALLOW_DISABLED)) continue;
+    if(ti->section[ti->trigIndex].conditions[i].condition >= COND_COUNT) continue;
+    if(Conditions[ti->section[ti->trigIndex].conditions[i].condition].fields & ADEF_IGNORE) continue;
+    ti->condIndex = i+1;
+    return &(ti->section[ti->trigIndex].conditions[i]);
+  }
+  ti->condIndex = 16;
+  return NULL;
+}
+
+// returns pointer to next valid action or NULL if none exist. Internally advances to next trigger block if TI_AUTO_NEXT_TRIG is set (for iterating over all actions without regard to ownership)
+ACTION* getNextAction(TrigIterator* ti){
+  u32 i;
+  do {
+    // return if there are no actions, or find next trig if enabled
+    if(!(ti->flags & TI__HAS_VALID_TRIG) || ti->actIndex == 64){
+      if(ti->flags & TI_AUTO_NEXT_TRIG){
+        if(getNextTrig(ti) == false){
+          return NULL;
+        }
+      }else{
+        return NULL;
+      }
+    }
+    
+    for(i = ti->actIndex; i < 64; i++){
+      if(ti->section[ti->trigIndex].actions[i].action == ACT_NO_ACTION) break;
+      if((ti->section[ti->trigIndex].actions[i].flags & TRIG_DISABLED) && !(ti->flags & TI_ALLOW_DISABLED)) continue;
+      if(ti->flags & TI_BRIEFINGS){
+        if(ti->section[ti->trigIndex].actions[i].action >= BACT_COUNT) continue;
+        if(BriefingActions[ti->section[ti->trigIndex].actions[i].action].fields & ADEF_PROC_IGNORE) continue;
+        if(delSPActions && (BriefingActions[ti->section[ti->trigIndex].actions[i].action].fields & ADEF_SP_ACT)) continue;
+      }else{
+        if(ti->section[ti->trigIndex].actions[i].action >= ACT_COUNT) continue;
+        if(Actions[ti->section[ti->trigIndex].actions[i].action].fields & ADEF_PROC_IGNORE) continue;
+        if(delSPActions && (Actions[ti->section[ti->trigIndex].actions[i].action].fields & ADEF_SP_ACT)) continue;
+      }
+      ti->actIndex = i+1;
+      return &(ti->section[ti->trigIndex].actions[i]);
+    }
+    ti->actIndex = 64;
+  } while(ti->flags & TI_AUTO_NEXT_TRIG); // keep looping if enabled
+  return NULL;
+}
+
+
 
 // ~~~ Whee ! ~~~ //
 
@@ -1377,7 +1493,7 @@ void procVCOD(){
       if(i == chkSIDE[j]) clear = false;
       if(useFORCData && j <= PLAYER_8 && i == chkFORC.players[j]) clear = false;
     }
-    if(clear) chkVCOD.seed[i] = 0;
+    if(clear) chkVCOD.seeds[i] = 0;
   }
   
   // Replace synonymous opcodes
@@ -1913,9 +2029,10 @@ void procMASK(){
 
 void procSTR(bool melee){
   u32 i,j;
-  bool used;
   u32 newSTRCount = 0;
   STR newSTR;
+  TrigIterator ti;
+  ACTION* a;
   
   memset(usedStrings, 0, chkSTR.count + 1);
   memset(stringReindex, 0, (chkSTR.count + 1) * sizeof(u32));
@@ -1929,126 +2046,32 @@ void procSTR(bool melee){
     usedStrings[chkSPRP[1]] = 1;
   }else{
     //
-    for(i = 0; i < trigCount; i++){
-      used = true; // used unless "never"
-      for(j = 0; j < 16; j++){
-        if(chkTRIG[i].conditions[j].condition == COND_NO_CONDITION) break; // stop looking
-        if(chkTRIG[i].conditions[j].condition == COND_NEVER && (chkTRIG[i].conditions[j].flags & TRIG_DISABLED) != 0){
-          used = false;
-          break;
-        }
+    initTrigIterator(&ti, TI_TRIGGERS | TI_VALIDATE_ALL | TI_AUTO_NEXT_TRIG);
+    while(a = getNextAction(&ti)){
+      if(Actions[a->action].fields & ADEF_TEXT){
+        usedStrings[a->text] |= 2;
       }
-      if(!used) continue;
-      used = false; // not used unless a player is set
-      for(j = PLAYER_1; j <= PLAYER_FORCE_4; j++){
-        if(j == PLAYER_9) j = PLAYER_ALL_PLAYERS; // skip unused players
-        if(chkTRIG[i].players[j] != 0){
-          used = true;
-          break;
-        }
+      if(Actions[a->action].fields & ADEF_WAV){
+        usedStrings[a->wav] |= 2;
       }
-      if(!used) continue;
-      used = false; // not used unless a useful action exists
-      for(j = 0; j < 64; j++){
-        if(chkTRIG[i].actions[j].action == ACT_NO_ACTION) break; // stop looking
-        if(chkTRIG[i].actions[j].action == ACT_PRESERVE_TRIGGER || chkTRIG[i].actions[j].action == ACT_COMMENT) continue; // not useful by themselves
-        if(chkTRIG[i].actions[j].action <= ACT_ENABLE_DEBUG_MODE && (chkTRIG[i].conditions[j].flags & TRIG_DISABLED) == 0){
-          used = true;
-          break;
-        }
-      }
-      if(!used) continue;
-      for(j = 0; j < 64; j++){
-        switch(chkTRIG[i].actions[j].action){
-          case ACT_NO_ACTION:
-            j = 64; // stop processing actions
-            break;
-          
-          case ACT_TRANSMISSION:
-            usedStrings[chkTRIG[i].actions[j].wav] |= 2;
-            usedStrings[chkTRIG[i].actions[j].text] |= 2;
-            break;
-            
-          case ACT_PLAY_WAV:
-            usedStrings[chkTRIG[i].actions[j].wav] |= 2;
-            break;
-          
-          case ACT_DISPLAY_TEXT_MESSAGE:
-          case ACT_SET_MISSION_OBJECTIVES:
-          case ACT_LEADERBOARD_CONTROL:
-          case ACT_LEADERBOARD_CONTROL_AT:
-          case ACT_LEADERBOARD_RESOURCES:
-          case ACT_LEADERBOARD_KILLS:
-          case ACT_LEADERBOARD_POINTS:
-          case ACT_LEADERBOARD_GOAL_CONTROL:
-          case ACT_LEADERBOARD_GOAL_CONTROL_AT:
-          case ACT_LEADERBOARD_GOAL_RESOURCES:
-          case ACT_LEADERBOARD_GOAL_KILLS:
-          case ACT_LEADERBOARD_GOAL_POINTS:
-            usedStrings[chkTRIG[i].actions[j].text] |= 2;
-            break;
-          
-          case ACT_SET_NEXT_SCENARIO:
-            if(delSPActions == false){
-              usedStrings[chkTRIG[i].actions[j].text] |= 2;
-            }
-            break;
-          
-          // Check used units
-          case ACT_CREATE_UNITS_WITH_PROPERTIES:
-          case ACT_CREATE_UNITS:
-            if(chkTRIG[i].actions[j].type < 228){
-              usedUnits[chkTRIG[i].actions[j].type] |= USEDUNIT_PREPLACED;
-            }
-            break;   
+      if(a->action == ACT_CREATE_UNITS || a->action == ACT_CREATE_UNITS_WITH_PROPERTIES){
+        if(a->type < 228){
+          usedUnits[a->type] |= USEDUNIT_PREPLACED;
         }
       }
     }
     
-    // Check used units
+    // Check used units - in str??
     testBuildable();
     
     //
-    for(i = 0; i < mbrfCount; i++){
-      if(chkMBRF[i].conditions[0].condition != COND_MISSION_BRIEFING) continue;
-      used = false; // not used unless a player is set
-      for(j = PLAYER_1; j <= PLAYER_FORCE_4; j++){
-        if(j == PLAYER_9) j = PLAYER_ALL_PLAYERS; // skip unused players
-        if(chkMBRF[i].players[j] != 0){
-          used = true;
-          break;
-        }
+    initTrigIterator(&ti, TI_BRIEFINGS | TI_VALIDATE_ALL | TI_AUTO_NEXT_TRIG);
+    while(a = getNextAction(&ti)){
+      if(BriefingActions[a->action].fields & ADEF_TEXT){
+        usedStrings[a->text] |= 4;
       }
-      if(!used) continue;
-      used = false; // not used unless a useful action exists
-      for(j = 0; j < 64; j++){
-        if(chkMBRF[i].actions[j].action == BACT_NO_ACTION) break; // stop looking
-        if(chkMBRF[i].actions[j].action <= BACT_SKIP_TUTORIAL && (chkMBRF[i].conditions[j].flags & TRIG_DISABLED) == 0){
-          used = true;
-          break;
-        }
-      }
-      if(!used) continue;
-      for(j = 0; j < 64; j++){
-        switch(chkMBRF[i].actions[j].action){
-          case BACT_NO_ACTION:
-            j = 64; // stop processing actions
-            break;
-          
-          case BACT_PLAY_WAV:
-            usedStrings[chkMBRF[i].actions[j].wav] |= 4;
-            break;
-          
-          case BACT_TRANSMISSION:
-            usedStrings[chkMBRF[i].actions[j].wav] |= 4;
-            usedStrings[chkMBRF[i].actions[j].text] |= 4;
-            break;
-          
-          case BACT_TEXT_MESSAGE:
-          case BACT_MISSION_OBJECTIVES:
-            usedStrings[chkMBRF[i].actions[j].text] |= 4;
-            break;
-        }
+      if(BriefingActions[a->action].fields & ADEF_WAV){
+        usedStrings[a->wav] |= 4;
       }
     }
     //
@@ -2136,53 +2159,27 @@ void procUPRP(){
 void procMRGN(bool count){
   u32 i,j,newid;
   if(count){ // why is this in the proc function ?????
-    for(i = 0; i < trigCount; i++){
-      for(j = 0; j < 16; j++){
-        if(chkTRIG[i].conditions[j].condition == COND_NO_CONDITION) break;
-        if(!(chkTRIG[i].conditions[j].flags & TRIG_DISABLED)){
-          switch(chkTRIG[i].conditions[j].condition){
-            case COND_BRING:
-            case COND_COMMAND_THE_MOST_AT:
-            case COND_COMMAND_THE_LEAST_AT:
-              if(chkTRIG[i].conditions[j].location && chkTRIG[i].conditions[j].location < 256){
-                usedLocations[chkTRIG[i].conditions[j].location] = true;
-              }
-              break;
+    TrigIterator ti;
+    CONDITION* c;
+    ACTION* a;
+    initTrigIterator(&ti, TI_TRIGGERS); // no validation ??
+    while(getNextTrig(&ti)){
+      while(c = getNextCondition(&ti)){
+        if(Conditions[c->condition].fields & CDEF_LOCATION){
+          if(c->location && c->location < 256){
+            usedLocations[c->location] = true;
           }
         }
       }
-      for(j = 0; j < 64; j++){
-        if(chkTRIG[i].actions[j].action == ACT_NO_ACTION) break;
-        if(!(chkTRIG[i].actions[j].flags & TRIG_DISABLED)){
-          switch(chkTRIG[i].actions[j].action){
-            case ACT_MOVE_LOCATION:
-            case ACT_MOVE_UNITS:
-            case ACT_ORDER:
-              if(chkTRIG[i].actions[j].dest && chkTRIG[i].actions[j].dest < 256){
-                usedLocations[chkTRIG[i].actions[j].dest] = true;
-              }
-            case ACT_TRANSMISSION:
-            case ACT_CENTER_VIEW:
-            case ACT_CREATE_UNITS_WITH_PROPERTIES:
-            case ACT_RUN_AI_SCRIPT_AT:
-            case ACT_LEADERBOARD_CONTROL_AT:
-            case ACT_KILL_UNITS_AT:
-            case ACT_REMOVE_UNITS_AT:
-            case ACT_MINIMAP_PING:
-            case ACT_LEADERBOARD_GOAL_CONTROL_AT:
-            case ACT_SET_DOODAD_STATE:
-            case ACT_SET_INVINCIBILITY:
-            case ACT_CREATE_UNITS:
-            case ACT_GIVE_UNITS_TO_PLAYER:
-            case ACT_MODIFY_UNIT_HIT_POINTS:
-            case ACT_MODIFY_UNIT_ENERGY:
-            case ACT_MODIFY_UNIT_SHIELD_POINTS:
-            case ACT_MODIFY_UNIT_RESOURCE_AMOUNT:
-            case ACT_MODIFY_UNIT_HANGAR_COUNT:
-              if(chkTRIG[i].actions[j].location && chkTRIG[i].actions[j].location < 256){
-                usedLocations[chkTRIG[i].actions[j].location] = true;
-              }
-              break;
+      while(a = getNextAction(&ti)){
+        if(Actions[a->action].fields & ADEF_LOCATION){
+          if(a->location && a->location < 256){
+            usedLocations[a->location] = true;
+          }
+        }
+        if(Actions[a->action].fields & ADEF_DEST_LOC){
+          if(a->dest && a->dest < 256){
+            usedLocations[a->dest] = true;
           }
         }
       }
@@ -2229,9 +2226,11 @@ Null out trigger execution for unused and invalid players and groups.
 Reference all WAV files from current strings rather than their own individual file names. For example; Play WAV "Force 1", would play the wav file called "Force 1".
 */
   u32 i,j,newj, trigFlags;
-  bool used;
   CONDITION newCondition;
   ACTION newAction;
+  TrigIterator ti;
+  CONDITION* c;
+  ACTION* a;
   
   if(triglist != NULL) free(triglist);
   triglist = malloc(trigCount * sizeof(u32));
@@ -2239,236 +2238,114 @@ Reference all WAV files from current strings rather than their own individual fi
   
   u32 newid = 0;
   u32 newCount = 0;
-  for(i = 0; i < trigCount; i++){
-    used = true; // Does not have "Never"
-    for(j = 0; j < 16; j++){
-      if(chkTRIG[i].conditions[j].condition == COND_NO_CONDITION) break;
-      if((chkTRIG[i].conditions[j].condition == COND_NEVER ||
-          chkTRIG[i].conditions[j].condition == COND_MISSION_BRIEFING) &&
-         !(chkTRIG[i].conditions[j].flags & TRIG_DISABLED)){
-        used = false;
-        break;
-      }
-    }
-    if(!used) continue;
-    used = false; // Has at least one valid action
-    for(j = 0; j < 64; j++){
-      if(chkTRIG[i].actions[j].action == ACT_NO_ACTION) break;
-      if(chkTRIG[i].actions[j].action >= ACT_VICTORY &&
-         chkTRIG[i].actions[j].action <= ACT_ENABLE_DEBUG_MODE &&
-         chkTRIG[i].actions[j].action != ACT_PRESERVE_TRIGGER &&
-         chkTRIG[i].actions[j].action != ACT_COMMENT &&
-         !(chkTRIG[i].actions[j].flags & TRIG_DISABLED)){
-        used = true;
-        break;
-      }
-    }
-    if(!used) continue;
-    used = false; // Has at least one valid player
-    for(j = PLAYER_1; j <= PLAYER_FORCE_4; j++){
-      if(j == PLAYER_9) j = PLAYER_ALL_PLAYERS;
-      if(chkTRIG[i].players[j] != 0 && usedPlayers[j] != -1){
-        used = true;
-        break;
-      }
-    }
-    if(!used) continue;
-    
+  initTrigIterator(&ti, TI_TRIGGERS | TI_VALIDATE_ALL);
+  while(getNextTrig(&ti)){
     newj = 0;
-    for(j = 0; j < 16; j++){
-      if(chkTRIG[i].conditions[j].condition == COND_NO_CONDITION) break;
-      if(chkTRIG[i].conditions[j].condition <= COND_SCORE && !(chkTRIG[i].conditions[j].flags & TRIG_DISABLED)){
-        memset(&newCondition, 0, sizeof(CONDITION));
-        newCondition.condition = chkTRIG[i].conditions[j].condition;
-        switch(newCondition.condition){
-          case COND_BRING:
-            newCondition.location = locationReindex[chkTRIG[i].conditions[j].location];
-          case COND_COMMAND:
-          case COND_KILL:
-          case COND_DEATHS:
-            newCondition.unit = chkTRIG[i].conditions[j].unit;
-          case COND_OPPONENTS:
-            newCondition.player = chkTRIG[i].conditions[j].player;
-          case COND_COUNTDOWN_TIMER:
-          case COND_ELAPSED_TIME:
-            newCondition.number = chkTRIG[i].conditions[j].number;
-            newCondition.modifier = chkTRIG[i].conditions[j].modifier;
-            break;
-          
-          case COND_ACCUMULATE:
-          case COND_SCORE:
-            newCondition.player = chkTRIG[i].conditions[j].player;
-            newCondition.number = chkTRIG[i].conditions[j].number;
-          case COND_SWITCH:
-            newCondition.modifier = chkTRIG[i].conditions[j].modifier;
-          case COND_HIGHEST_SCORE:
-          case COND_MOST_RESOURCES:
-          case COND_LOWEST_SCORE:
-          case COND_LEAST_RESOURCES:
-            newCondition.type = chkTRIG[i].conditions[j].type;
-            break;
-          
-          case COND_COMMAND_THE_MOST_AT:
-          case COND_COMMAND_THE_LEAST_AT:
-            newCondition.location = locationReindex[chkTRIG[i].conditions[j].location];
-          case COND_COMMAND_THE_MOST:
-          case COND_MOST_KILLS:
-          case COND_COMMAND_THE_LEAST:
-          case COND_LEAST_KILLS:
-            newCondition.unit = chkTRIG[i].conditions[j].unit;
-            break;
-        }
-        memcpy(&chkTRIG[newid].conditions[newj], &newCondition, sizeof(CONDITION));
-        newj++;
+    while(c = getNextCondition(&ti)){
+      memset(&newCondition, 0, sizeof(CONDITION));
+      newCondition.condition = c->condition;
+      if(Conditions[c->condition].fields & CDEF_LOCATION){
+        newCondition.location = locationReindex[c->location];
       }
+      if(Conditions[c->condition].fields & CDEF_PLAYER){
+        newCondition.player = c->player;
+      }
+      if(Conditions[c->condition].fields & CDEF_NUMBER){
+        newCondition.number = c->number;
+      }
+      if(Conditions[c->condition].fields & CDEF_UNIT){
+        newCondition.unit = c->unit;
+      }
+      if(Conditions[c->condition].fields & CDEF_MODIFIER){
+        newCondition.modifier = c->modifier;
+      }
+      if(Conditions[c->condition].fields & CDEF_TYPE){
+        newCondition.type = c->type;
+      }
+      if(Conditions[c->condition].fields & CDEF_FLAGS){
+        newCondition.flags = c->flags & Conditions[c->condition].flagMask;
+      }
+      if(Conditions[c->condition].fields & CDEF_UNUSED){
+        if(c->unused == TRIG_MASKED_EUD){
+          newCondition.unused = TRIG_MASKED_EUD;
+        }else{
+          newCondition.flags = 0;
+          newCondition.unused = 0;
+        }
+      }
+      memcpy(&chkTRIG[newid].conditions[newj], &newCondition, sizeof(CONDITION));
+      newj++;
     }
     // clear remaining condition slots
-    for( ; newj < 16; newj++){
-      memset(&chkTRIG[newid].conditions[newj], 0, sizeof(CONDITION));
+    if(newj < 16){
+      memset(&chkTRIG[newid].conditions[newj], 0, (16 - newj) * sizeof(CONDITION));
     }
     
     newj = 0;
-    trigFlags = chkTRIG[i].flags & TRIG_USED_FLAGS_MASK;
-    for(j = 0; j < 64; j++){
-      if(chkTRIG[i].actions[j].action == ACT_NO_ACTION) break;
-      if(chkTRIG[i].actions[j].action == ACT_COMMENT) continue; // ignore comments
-      if(delSPActions){
-        if(chkTRIG[i].actions[j].action == ACT_PAUSE_GAME) continue;
-        if(chkTRIG[i].actions[j].action == ACT_UNPAUSE_GAME) continue;
-        if(chkTRIG[i].actions[j].action == ACT_SET_NEXT_SCENARIO) continue;
-        if(chkTRIG[i].actions[j].action == ACT_DISABLE_DEBUG_MODE) continue;
-        if(chkTRIG[i].actions[j].action == ACT_ENABLE_DEBUG_MODE) continue;
+    trigFlags = chkTRIG[ti.trigIndex].flags & TRIG_USED_FLAGS_MASK;
+    while(a = getNextAction(&ti)){
+      if(a->action == ACT_PRESERVE_TRIGGER){
+        trigFlags |= TRIG_FLAG_PRESERVE;
+        continue; // No need to write this action
       }
-      if(chkTRIG[i].actions[j].action <= ACT_ENABLE_DEBUG_MODE && !(chkTRIG[i].actions[j].flags & TRIG_DISABLED)){
-        if(chkTRIG[i].actions[j].action == ACT_PRESERVE_TRIGGER){
-          trigFlags |= TRIG_FLAG_PRESERVE;
-          continue; // No need to write this action
-        }
-        memset(&newAction, 0, sizeof(ACTION));
-        newAction.action = chkTRIG[i].actions[j].action;
-        switch(newAction.action){
-          // why did I stack all of these
-          case ACT_SET_COUNTDOWN_TIMER:
-            newAction.modifier = chkTRIG[i].actions[j].modifier;
-          case ACT_WAIT:
-            newAction.time = chkTRIG[i].actions[j].time;
-            break;
-          
-          case ACT_TRANSMISSION:
-            newAction.location = locationReindex[chkTRIG[i].actions[j].location];
-            newAction.wav = stringReindex[chkTRIG[i].actions[j].wav];
-            newAction.dest = chkTRIG[i].actions[j].dest;
-            newAction.type = chkTRIG[i].actions[j].type;
-            newAction.modifier = chkTRIG[i].actions[j].modifier;
-          case ACT_DISPLAY_TEXT_MESSAGE:
-            newAction.text = stringReindex[chkTRIG[i].actions[j].text];
-            newAction.flags = chkTRIG[i].actions[j].flags & TRIG_ALWAYSDISPLAY;
-            break;
-          
-          case ACT_PLAY_WAV:
-            newAction.wav = stringReindex[chkTRIG[i].actions[j].wav];
-            break;
-          
-          case ACT_MOVE_LOCATION:
-            newAction.player = chkTRIG[i].actions[j].player;
-            newAction.type = chkTRIG[i].actions[j].type;
-            chkTRIG[i].actions[j].dest = locationReindex[chkTRIG[i].actions[j].dest];
-          case ACT_RUN_AI_SCRIPT_AT:
-            newAction.dest = chkTRIG[i].actions[j].dest;
-          case ACT_CENTER_VIEW:
-          case ACT_MINIMAP_PING:
-            newAction.location = locationReindex[chkTRIG[i].actions[j].location];
-            break;
-          
-          case ACT_MOVE_UNITS:
-          case ACT_ORDER:
-            chkTRIG[i].actions[j].dest = locationReindex[chkTRIG[i].actions[j].dest];
-          case ACT_CREATE_UNITS_WITH_PROPERTIES:
-          case ACT_GIVE_UNITS_TO_PLAYER:
-          case ACT_MODIFY_UNIT_HIT_POINTS:
-          case ACT_MODIFY_UNIT_ENERGY:
-          case ACT_MODIFY_UNIT_SHIELD_POINTS:
-          case ACT_MODIFY_UNIT_HANGAR_COUNT:
-            newAction.location = locationReindex[chkTRIG[i].actions[j].location];
-          case ACT_SET_RESOURCES:
-          case ACT_SET_SCORE:
-          case ACT_SET_DEATHS:
-            newAction.player = chkTRIG[i].actions[j].player;
-            newAction.type = chkTRIG[i].actions[j].type;
-          case ACT_SET_SWITCH:
-            newAction.dest = chkTRIG[i].actions[j].dest;
-          case ACT_LEADERBOARD_COMPUTER_PLAYERS:
-            newAction.modifier = chkTRIG[i].actions[j].modifier;
-            break;
-          
-          case ACT_LEADERBOARD_GOAL_CONTROL_AT:
-            newAction.location = locationReindex[chkTRIG[i].actions[j].location];
-          case ACT_LEADERBOARD_GOAL_CONTROL:
-          case ACT_LEADERBOARD_GOAL_RESOURCES:
-          case ACT_LEADERBOARD_GOAL_KILLS:
-          case ACT_LEADERBOARD_GOAL_POINTS:
-            newAction.dest = chkTRIG[i].actions[j].dest;
-          case ACT_LEADERBOARD_CONTROL:
-          case ACT_LEADERBOARD_RESOURCES:
-          case ACT_LEADERBOARD_KILLS:
-          case ACT_LEADERBOARD_POINTS:
-            newAction.type = chkTRIG[i].actions[j].type;
-          case ACT_SET_MISSION_OBJECTIVES:
-          case ACT_SET_NEXT_SCENARIO:
-            newAction.text = stringReindex[chkTRIG[i].actions[j].text];
-            break;
-          
-          case ACT_MODIFY_UNIT_RESOURCE_AMOUNT:
-            newAction.location = locationReindex[chkTRIG[i].actions[j].location];
-            newAction.player = chkTRIG[i].actions[j].player;
-            newAction.modifier = chkTRIG[i].actions[j].modifier;
-          case ACT_RUN_AI_SCRIPT:
-          case ACT_LEADERBOARD_GREED:
-            newAction.dest = chkTRIG[i].actions[j].dest;
-            break;
-          
-          case ACT_LEADERBOARD_CONTROL_AT:
-            newAction.location = locationReindex[chkTRIG[i].actions[j].location];
-            newAction.type = chkTRIG[i].actions[j].type;
-            newAction.text = stringReindex[chkTRIG[i].actions[j].text];
-            break;
-          
-          case ACT_CREATE_UNITS:
-            newAction.action = ACT_CREATE_UNITS_WITH_PROPERTIES;
-          case ACT_KILL_UNITS_AT:
-          case ACT_REMOVE_UNITS_AT:
-          case ACT_SET_DOODAD_STATE:
-          case ACT_SET_INVINCIBILITY:
-            newAction.location = locationReindex[chkTRIG[i].actions[j].location];
-            newAction.modifier = chkTRIG[i].actions[j].modifier;
-          case ACT_KILL_UNIT:
-          case ACT_REMOVE_UNIT:
-          case ACT_SET_ALLIANCE_STATUS:
-            newAction.player = chkTRIG[i].actions[j].player;
-            newAction.type = chkTRIG[i].actions[j].type;
-            break;
-          
-          case ACT_TALKING_PORTRAIT:
-            newAction.time = chkTRIG[i].actions[j].time;
-            newAction.type = chkTRIG[i].actions[j].type;
-            break;
-        }
-        if(newAction.action == ACT_CREATE_UNITS_WITH_PROPERTIES){
-          if(newAction.modifier == 1) newAction.modifier = 0; // create 0 == create 1
-        }
-        memcpy(&chkTRIG[newid].actions[newj], &newAction, sizeof(ACTION));
-        newj++;
+      memset(&newAction, 0, sizeof(ACTION));
+      newAction.action = a->action;
+      if(Actions[a->action].fields & ADEF_LOCATION){
+        newAction.location = locationReindex[a->location];
       }
+      if(Actions[a->action].fields & ADEF_TEXT){
+        newAction.text = stringReindex[a->text];
+      }
+      if(Actions[a->action].fields & ADEF_WAV){
+        newAction.wav = stringReindex[a->wav];
+      }
+      if(Actions[a->action].fields & ADEF_TIME){
+        newAction.time = a->time;
+      }
+      if(Actions[a->action].fields & ADEF_PLAYER){
+        newAction.player = a->player;
+      }
+      if(Actions[a->action].fields & ADEF_DEST){
+        newAction.dest = a->dest;
+      }
+      if(Actions[a->action].fields & ADEF_DEST_LOC){
+        newAction.dest = locationReindex[a->dest];
+      }
+      if(Actions[a->action].fields & ADEF_TYPE){
+        newAction.type = a->type;
+      }
+      if(Actions[a->action].fields & ADEF_MODIFIER){
+        newAction.modifier = a->modifier;
+      }
+      if(Actions[a->action].fields & ADEF_FLAGS){
+        newAction.flags = a->flags & Actions[a->action].flagMask;
+      }
+      if(Actions[a->action].fields & ADEF_UNUSED){
+        if(a->unused2 == TRIG_MASKED_EUD){
+          newAction.unused2 = TRIG_MASKED_EUD;
+        }else{
+          newAction.flags = 0;
+          newAction.unused2 = 0;
+        }
+      }
+      if(newAction.action == ACT_CREATE_UNITS){
+        newAction.action = ACT_CREATE_UNITS_WITH_PROPERTIES;
+      }
+      if(newAction.action == ACT_CREATE_UNITS_WITH_PROPERTIES){
+        if(newAction.modifier == 1) newAction.modifier = 0; // create 0 == create 1
+      }
+      memcpy(&chkTRIG[newid].actions[newj], &newAction, sizeof(ACTION));
+      newj++;
     }
     // clear remaining action slots
-    for( ; newj < 64; newj++){
-      memset(&chkTRIG[newid].actions[newj], 0, sizeof(ACTION));
+    if(newj < 64){
+      memset(&chkTRIG[newid].actions[newj], 0, (64 - newj) * sizeof(ACTION));
     }
     
     chkTRIG[newid].flags = trigFlags;
     for(j = PLAYER_1; j <= PLAYER_ID_COUNT; j++){
       if(j <= PLAYER_8 || (j >= PLAYER_ALL_PLAYERS && j <= PLAYER_FORCE_4)){
-        if(chkTRIG[i].players[j] != 0){
+        if(chkTRIG[ti.trigIndex].players[j] != 0){
           chkTRIG[newid].players[j] = 1;
         }else{
           chkTRIG[newid].players[j] = 0;
@@ -2492,6 +2369,7 @@ Reference all WAV files from current strings rather than their own individual fi
     
     newCount++;
   }
+  
   trigCount = newCount;
   trigUnique = newid;
   
@@ -2558,88 +2436,57 @@ Reference all WAV files from current strings rather than their own individual fi
 }
 
 void procMBRF(){
-  u32 i,j,newj;
-  bool used;
+  u32 i;
   ACTION newAction;
+  TrigIterator ti;
+  ACTION* a;
   
   u32 newid = 0;
-  for(i = 0; i < mbrfCount; i++){
-    if(chkMBRF[i].conditions[0].condition != COND_MISSION_BRIEFING) continue;
-    used = false; // Has at least one valid action
-    for(j = 0; j < 64; j++){
-      if(chkMBRF[i].actions[j].action == ACT_NO_ACTION) break;
-      if(chkMBRF[i].actions[j].action <= BACT_SKIP_TUTORIAL && !(chkMBRF[i].actions[j].flags & TRIG_DISABLED)){
-        used = true;
-        break;
-      }
-    }
-    if(!used) continue;
-    used = false; // Has at least one valid player
-    for(j = PLAYER_1; j <= PLAYER_FORCE_4; j++){
-      if(j == PLAYER_9) j = PLAYER_ALL_PLAYERS;
-      if(chkMBRF[i].players[j] != 0 && usedPlayers[j] != -1){
-        used = true;
-        break;
-      }
-    }
-    if(!used) continue;
-    
-    memset(&chkMBRF[newid].conditions[j], 0, sizeof(CONDITION)*16);
+  initTrigIterator(&ti, TI_BRIEFINGS | TI_VALIDATE_ALL);
+  while(getNextTrig(&ti)){
+    memset(&chkMBRF[newid].conditions, 0, sizeof(CONDITION)*16);
     chkMBRF[newid].conditions[0].condition = COND_MISSION_BRIEFING;
     
-    newj = 0;
-    for(j = 0; j < 64; j++){
-      if(chkMBRF[i].actions[j].action == BACT_NO_ACTION) break;
-      if(chkMBRF[i].actions[j].action <= BACT_TRANSMISSION && !(chkMBRF[i].actions[j].flags & TRIG_DISABLED)){
-        memset(&newAction, 0, sizeof(ACTION));
-        newAction.action = chkMBRF[i].actions[j].action;
-        switch(newAction.action){
-          case BACT_PLAY_WAV:
-            newAction.wav = stringReindex[chkMBRF[i].actions[j].wav];
-          case BACT_WAIT:
-            newAction.time = chkMBRF[i].actions[j].time;
-            break;
-           
-          case BACT_TEXT_MESSAGE:
-            newAction.time = chkMBRF[i].actions[j].time;
-          case BACT_MISSION_OBJECTIVES:
-            newAction.text = stringReindex[chkMBRF[i].actions[j].text];
-            break;
-           
-          case BACT_SHOW_PORTRAIT:
-            newAction.player = chkMBRF[i].actions[j].player;
-            newAction.type = chkMBRF[i].actions[j].type;
-            break;
-          
-          case BACT_TRANSMISSION:
-            newAction.text = stringReindex[chkMBRF[i].actions[j].text];
-            newAction.wav = stringReindex[chkMBRF[i].actions[j].wav];
-            newAction.modifier = chkMBRF[i].actions[j].modifier;
-          case BACT_DISPLAY_SPEAKING_PORTRAIT:
-            newAction.time = chkMBRF[i].actions[j].time;
-          case BACT_HIDE_PORTRAIT:
-            newAction.player = chkMBRF[i].actions[j].player;
-            break;
-        }
-        memcpy(&chkMBRF[newid].actions[newj], &newAction, sizeof(ACTION));
-        newj++;
+    i = 0;
+    while(a = getNextAction(&ti)){
+      memset(&newAction, 0, sizeof(ACTION));
+      newAction.action = a->action;
+      if(BriefingActions[a->action].fields & ADEF_TEXT){
+        newAction.text = stringReindex[a->text];
       }
+      if(BriefingActions[a->action].fields & ADEF_WAV){
+        newAction.wav = stringReindex[a->wav];
+      }
+      if(BriefingActions[a->action].fields & ADEF_TIME){
+        newAction.time = a->time;
+      }
+      if(BriefingActions[a->action].fields & ADEF_PLAYER){
+        newAction.player = a->player;
+      }
+      if(BriefingActions[a->action].fields & ADEF_TYPE){
+        newAction.type = a->type;
+      }
+      if(BriefingActions[a->action].fields & ADEF_MODIFIER){
+        newAction.modifier = a->modifier;
+      }
+      memcpy(&chkMBRF[newid].actions[i], &newAction, sizeof(ACTION));
+      i++;
     }
     // clear remaining action slots
-    for( ; newj < 64; newj++){
-      memset(&chkMBRF[newid].actions[newj], 0, sizeof(ACTION));
+    if(i < 64){
+      memset(&chkMBRF[newid].actions[i], 0, (64 - i) * sizeof(ACTION));
     }
     
     chkMBRF[newid].flags = 0;
-    for(j = PLAYER_1; j <= PLAYER_ID_COUNT; j++){
-      if(j <= PLAYER_8 || (j >= PLAYER_ALL_PLAYERS && j <= PLAYER_FORCE_4)){
-        if(chkTRIG[i].players[j] != 0){
-          chkTRIG[newid].players[j] = 1;
+    for(i = PLAYER_1; i <= PLAYER_ID_COUNT; i++){
+      if(i <= PLAYER_8 || (i >= PLAYER_ALL_PLAYERS && i <= PLAYER_FORCE_4)){
+        if(chkMBRF[ti.trigIndex].players[i] != 0){
+          chkMBRF[newid].players[i] = 1;
         }else{
-          chkTRIG[newid].players[j] = 0;
+          chkMBRF[newid].players[i] = 0;
         }
       }else{
-        chkTRIG[newid].players[j] = 0;
+        chkMBRF[newid].players[i] = 0;
       }
     }
     newid++;
@@ -2699,6 +2546,10 @@ void procFORC(){
       }
     }
   }
+  
+  // trim trailing 0's
+  u8* rawFORC = (u8*)(&chkFORC);
+  for(forcSize = sizeof(FORC); forcSize > 0 && rawFORC[forcSize-1] == 0; forcSize--);
 }
 
 void procUNIS(){

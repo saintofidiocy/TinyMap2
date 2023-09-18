@@ -57,6 +57,16 @@
 #define MPQ_FLAGS_TYPE_MASK      0x7F000000
 #define MPQ_FLAGS_COMP_MASK      0x0000FFFF
 
+
+// SectionDef load function
+#define LOADSIZE_CONST 0 // size is always the same
+#define LOADSIZE_MAX   1 // size specifies the maximum valid section size
+#define LOADSIZE_ENTRY 2 // size is the size of a single entry
+#define LOADSIZE_MGRN  3 // MRGN has two valid sizes
+#define LOADSIZE_MASK  4 // MASK is always valid
+#define LOADSIZE_STR   5 // STR/STRx sections are loaded in a unique way
+
+
 // Units.dat flags
 #define UNITSDAT_ABIL_BUILDING          0x00000001
 #define UNITSDAT_ABIL_ADDON             0x00000002
@@ -280,6 +290,7 @@ enum {
 #define COND_SCORE                           21
 #define COND_ALWAYS                          22
 #define COND_NEVER                           23
+#define COND_COUNT                           24
 
 
 // Actions
@@ -343,6 +354,7 @@ enum {
 #define ACT_SET_ALLIANCE_STATUS              57
 #define ACT_DISABLE_DEBUG_MODE               58
 #define ACT_ENABLE_DEBUG_MODE                59
+#define ACT_COUNT                            60
 
 // Briefing Actions
 #define BACT_NO_ACTION                       0
@@ -355,13 +367,17 @@ enum {
 #define BACT_DISPLAY_SPEAKING_PORTRAIT       7
 #define BACT_TRANSMISSION                    8
 #define BACT_SKIP_TUTORIAL                   9
+#define BACT_COUNT                           10
 
 // TRIG flags
 #define TRIG_DISABLED                      0x02
 #define TRIG_ALWAYSDISPLAY                 0x04
+#define TRIG_UNITTYPEUSED                  0x10
 #define TRIG_FLAG_PRESERVE                 0x00000004
 // I don't remember what each of these are:
 #define TRIG_USED_FLAGS_MASK               0x0000003F
+
+#define TRIG_MASKED_EUD                    ('S'|('C'<<8))
 
 // player IDs
 enum {
@@ -665,6 +681,47 @@ enum {
 #define USEDUNIT_PREPLACED   1
 #define USEDUNIT_ENABLED     2
 #define USEDUNIT_BUILDABLE   4
+
+
+// ActDef Fields (Conditions)
+#define CDEF_LOCATION      0x0001
+#define CDEF_PLAYER        0x0002
+#define CDEF_NUMBER        0x0004
+#define CDEF_UNIT          0x0008
+#define CDEF_MODIFIER      0x0010
+#define CDEF_TYPE          0x0020
+#define CDEF_FLAGS         0x0040
+#define CDEF_UNUSED        0x0080
+
+// ActDef Fields (Actions)
+#define ADEF_LOCATION      0x0001
+#define ADEF_TEXT          0x0002
+#define ADEF_WAV           0x0004
+#define ADEF_TIME          0x0008
+#define ADEF_PLAYER        0x0010
+#define ADEF_DEST          0x0020
+#define ADEF_DEST_LOC      0x0040
+#define ADEF_TYPE          0x0080
+#define ADEF_MODIFIER      0x0100
+#define ADEF_FLAGS         0x0200
+#define ADEF_UNUSED        0x0400
+
+// ActDef Extras
+#define ADEF_VALID_IGNORE  0x1000 // ignore only in validation
+#define ADEF_PROC_IGNORE   0x2000
+#define ADEF_IGNORE        0x3000
+#define ADEF_SP_ACT        0x4000
+
+// TrigIterator flags
+#define TI_TRIGGERS                          0x00000001
+#define TI_BRIEFINGS                         0x00000002
+#define TI_VALIDATE_CONDITIONS               0x00000004 // ignore "never" conditions
+#define TI_VALIDATE_ACTIONS                  0x00000008 // ignore actionless actions (comments, preserve)
+#define TI_VALIDATE_PLAYERS                  0x00000010 // must be owned by a player
+#define TI_VALIDATE_ALL                      (TI_VALIDATE_CONDITIONS | TI_VALIDATE_ACTIONS | TI_VALIDATE_PLAYERS)
+#define TI_ALLOW_DISABLED                    0x00000020
+#define TI_AUTO_NEXT_TRIG                    0x00000040 // continues to next trigger block without breaking
+#define TI__HAS_VALID_TRIG                   0x80000000 // internal flag indicating the current trigger block is valid
 
 
 // buildops.hpcodes

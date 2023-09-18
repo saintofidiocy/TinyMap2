@@ -2,24 +2,6 @@
 #define H_STRUCTS
 #include <stdlib.h>
 
-// ---- Internal Structs ----
-
-typedef struct{
-  u8* data;
-  char filename[MAX_PATH];
-  u32 initSize;
-  u32 initCompSize;
-  u32 saveSize;
-  u32 saveCompSize;
-  struct{
-    u32 trig;
-    u32 mbrf;
-  } wavUsage;
-  u32 mpqFlags;
-  u32 comp; // Previously used compression settings
-} MapFile;
-
-
 #include <pshpack1.h>
 
 // ---- CHK Sections ----
@@ -98,8 +80,8 @@ typedef struct{
   u8  action;
   u8  modifier;
   u8  flags;
-  u16 unused1;
-  u8  unused2;
+  u8  unused1;
+  u16 unused2;
 } ACTION;
 
 typedef struct{
@@ -110,7 +92,7 @@ typedef struct{
 } TRIG;
 
 typedef struct{
-  u32 seed[256];
+  u32 seeds[256];
   u8  opcodes[16];
 } VCOD;
 
@@ -389,6 +371,48 @@ typedef struct{
   u8  segments;
   u8  segTable[1];
 } ogghdr;
+
+
+
+// ---- Internal Structs ----
+
+typedef struct{
+  u8* data;
+  char filename[MAX_PATH];
+  u32 initSize;
+  u32 initCompSize;
+  u32 saveSize;
+  u32 saveCompSize;
+  struct{
+    u32 trig;
+    u32 mbrf;
+  } wavUsage;
+  u32 mpqFlags;
+  u32 comp; // Previously used compression settings
+} MapFile;
+
+typedef struct {
+  u32 sectionID;
+  u32 sectionName;
+  u32 loadType;
+  void* data;
+  u32 size;
+  u32* count;
+} SectionDef;
+
+typedef struct {
+  u16 fields;
+  u8  flagMask;
+} ActDef;
+
+typedef struct {
+  TRIG* section;
+  u32 flags;
+  u32 trigIndex;
+  u32 maxIndex;
+  u32 condIndex;
+  u32 actIndex;
+} TrigIterator;
 
 #include <poppack.h>
 #endif
