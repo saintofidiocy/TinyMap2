@@ -727,7 +727,14 @@ u8* createCHKBuffer(int outputType){
   return malloc(size);
 }
 
-u32 createMeleeCHK(u8* buffer, int outputType){
+
+#ifdef SAVE_DBGLOG
+#define DBGLOG(...) {fprintf(fLog, __VA_ARGS__);fflush(fLog);}
+#else
+#define DBGLOG(...) {}
+#endif
+
+u32 createMeleeCHK(u8* buffer, int outputType, FILE* fLog){
   u32 i,j;
   
   if(outputType == MODE_MELEE_SIMPLE) chkVER = VER_STARCRAFT;
@@ -822,7 +829,7 @@ u32 createMeleeCHK(u8* buffer, int outputType){
   return pointer;
 }
 
-u32 createUMSCHK(u8* buffer, int outputType){
+u32 createUMSCHK(u8* buffer, int outputType, FILE* fLog){
   u32 i,j;
   
   switch(outputType){
@@ -861,10 +868,10 @@ u32 createUMSCHK(u8* buffer, int outputType){
         usedPlayers[i] = USEDPLAYER_UNUSED;
         break;
       case OWNR_COMPUTER:
-        usedPlayers[i] = USEDPLAYER_HUMAN;
+        usedPlayers[i] = USEDPLAYER_COMPUTER;
         break;
       case OWNR_HUMAN:
-        usedPlayers[i] = USEDPLAYER_COMPUTER;
+        usedPlayers[i] = USEDPLAYER_HUMAN;
         break;
       default:
         usedPlayers[i] = USEDPLAYER_NEUTRAL;
@@ -880,26 +887,41 @@ u32 createUMSCHK(u8* buffer, int outputType){
   
   randomStartLoc = false;
   
+  DBGLOG("MTXM\n");
   procMTXM();
+  DBGLOG("PUNI\n");
   procPUNI(); // UsedUnits Check Enabled
+  DBGLOG("UNIT\n");
   procUNIT(false); // UsedUnits Check Preplaced
+  DBGLOG("THG2\n");
   procTHG2(false); // UsedUnits Check Preplaced
+  DBGLOG("MASK\n");
   procMASK();
+  DBGLOG("UPRP\n");
   procUPRP();
+  DBGLOG("FORC\n");
   procFORC();
+  DBGLOG("PTEC/PTEx\n");
   if((outputType & (MODE_UMS_SIMPLESC | MODE_UMS_SIMPLEEX | MODE_UMS_STARCRAFT | MODE_UMS_EXTENDED)) != 0){
     procPTEC(); // UsedUnits Check Enabled
   }
   if((outputType & (MODE_UMS_SIMPLEEX | MODE_UMS_BROODWAR | MODE_UMS_EXTENDED)) != 0){
     procPTEx(); // UsedUnits Check Enabled
   }
+  DBGLOG("STR\n");
   procSTR(false); // UsedUnits Check Units used in Triggers & testBuildable
+  DBGLOG("MRGN\n");
   procMRGN();
+  DBGLOG("TRIG\n");
   procTRIG();
+  DBGLOG("MBRF\n");
   procMBRF();
+  DBGLOG("SPRP\n");
   procSPRP();
+  DBGLOG("VCOD\n");
   procVCOD();
   
+  DBGLOG("UPGR/UNIS/UPGS/TECS\n");
   if((outputType & (MODE_UMS_SIMPLESC | MODE_UMS_SIMPLEEX | MODE_UMS_STARCRAFT | MODE_UMS_EXTENDED)) != 0){
     procUPGR();
     //procPTEC();
@@ -907,6 +929,7 @@ u32 createUMSCHK(u8* buffer, int outputType){
     procUPGS();
     procTECS();
   }
+  DBGLOG("UPGx/UNIx/UPGx/TECx\n");
   if((outputType & (MODE_UMS_SIMPLEEX | MODE_UMS_BROODWAR | MODE_UMS_EXTENDED)) != 0){
     procPUPx();
     //procPTEx();
@@ -914,10 +937,12 @@ u32 createUMSCHK(u8* buffer, int outputType){
     procUPGx();
     procTECx();
   }
+  DBGLOG("FORC\n");
   for(i = 0; i < 4; i++){
     chkFORC.strings[i] = stringReindex[chkFORC.strings[i]];
   }
   
+  DBGLOG("CRGB\n");
   if(loadedSections[SECT_CRGB_ID]) procCRGB();
   
   /* old functions
@@ -976,6 +1001,7 @@ u32 createUMSCHK(u8* buffer, int outputType){
   
   u32 pointer = 0;
   
+  DBGLOG("write stuff 1\n");
   writeSection(buffer, &pointer, SECT_VER, sizeof(chkVER), &chkVER);
   writeSection(buffer, &pointer, SECT_VCOD, sizeof(VCOD), &chkVCOD);
   writeSection(buffer, &pointer, SECT_OWNR, sizeof(chkOWNR), chkOWNR);
@@ -984,6 +1010,7 @@ u32 createUMSCHK(u8* buffer, int outputType){
   writeSection(buffer, &pointer, SECT_SIDE, sizeof(chkSIDE), chkSIDE);
   writeSection(buffer, &pointer, SECT_MTXM, mtxmSize*sizeof(u16), chkMTXM);
   writeSection(buffer, &pointer, SECT_PUNI, sizeof(PUNI), &chkPUNI);
+  DBGLOG("write stuff 2\n");
   if((outputType & (MODE_UMS_SIMPLESC | MODE_UMS_SIMPLEEX | MODE_UMS_STARCRAFT | MODE_UMS_EXTENDED)) != 0){
     writeSection(buffer, &pointer, SECT_UPGR, sizeof(UPGR), &chkUPGR);
     writeSection(buffer, &pointer, SECT_PTEC, sizeof(PTEC), &chkPTEC);
@@ -991,7 +1018,9 @@ u32 createUMSCHK(u8* buffer, int outputType){
   writeSection(buffer, &pointer, SECT_UNIT, unitCount*sizeof(UNIT), chkUNIT);
   writeSection(buffer, &pointer, SECT_THG2, thg2Count*sizeof(THG2), chkTHG2);
   writeSection(buffer, &pointer, SECT_MASK, maskSize, chkMASK);
+  DBGLOG("write STR\n");
   writeSTRSection(buffer, &pointer);
+  DBGLOG("write stuff 3\n");
   writeSection(buffer, &pointer, SECT_UPRP, sizeof(chkUPRP), chkUPRP);
   if(use255Locations){
     writeSection(buffer, &pointer, SECT_MRGN, 255*sizeof(MRGN), chkMRGN);
@@ -999,9 +1028,11 @@ u32 createUMSCHK(u8* buffer, int outputType){
     writeSection(buffer, &pointer, SECT_MRGN, 64*sizeof(MRGN), chkMRGN);
   }
   
+  DBGLOG("write TRIG\n");
   //writeSection(buffer, &pointer, SECT_TRIG, trigCount*sizeof(TRIG), chkTRIG);
   writeTRIGSection(buffer, &pointer); // section stacker
   
+  DBGLOG("write stuff 4\n");
   writeSection(buffer, &pointer, SECT_MBRF, mbrfCount*sizeof(TRIG), chkMBRF);
   writeSection(buffer, &pointer, SECT_SPRP, sizeof(chkSPRP), chkSPRP);
   writeSection(buffer, &pointer, SECT_FORC, forcSize, &chkFORC);
@@ -1030,6 +1061,7 @@ u32 createUMSCHK(u8* buffer, int outputType){
     writeSection(buffer, &pointer, SECT_UPGx, sizeof(UPGx), &chkUPGx);
     writeSection(buffer, &pointer, SECT_TECx, sizeof(TECx), &chkTECx);
   }
+  DBGLOG("done\n");
   return pointer;
 }
 
@@ -1145,17 +1177,20 @@ void writeTRIGSection(u8* buffer, u32* pointer){
   char c,s[3];
   
   CONDITION tmpcond;
-  TRIG* tmptrgs = malloc(trigMax * sizeof(TRIG));
+  TRIG* tmptrgs = NULL;
   
-  if(trigwrite[0].isStacked){
-    chkh.size = trigwrite[0].chunkSize;
-  }else{
-    chkh.size = trigwrite[0].count;
-    if(trigwrite[1].isStacked){
-      chkh.size += trigwrite[1].chunkSize;
+  if(trigWCount){
+    tmptrgs = malloc(trigMax * sizeof(TRIG));
+    if(trigwrite[0].isStacked){
+      chkh.size = trigwrite[0].chunkSize;
+    }else{
+      chkh.size = trigwrite[0].count;
+      if(trigwrite[1].isStacked){
+        chkh.size += trigwrite[1].chunkSize;
+      }
     }
+    chkh.size *= sizeof(TRIG);
   }
-  chkh.size *= sizeof(TRIG);
   
   memcpy(buffer+*pointer, &chkh, sizeof(CHKH));
   *pointer += sizeof(CHKH);
@@ -1256,7 +1291,7 @@ void writeTRIGSection(u8* buffer, u32* pointer){
       }
     }
   }
-  free(tmptrgs);
+  if(tmptrgs) free(tmptrgs);
 }
 
 // true = same

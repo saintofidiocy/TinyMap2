@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "types.h"
 
 typedef struct {
@@ -33,8 +34,8 @@ void genDefaultListfile();
 void countWAVs(MapFile* mapFiles, u32 mapFileCount);
 
 u8* createCHKBuffer(int outputType);
-u32 createMeleeCHK(u8* buffer, int mode);
-u32 createUMSCHK(u8* buffer, int mode);
+u32 createMeleeCHK(u8* buffer, int mode, FILE* fLog);
+u32 createUMSCHK(u8* buffer, int mode, FILE* fLog);
 
 void initTrigIterator(TrigIterator* ti, u32 flags);
 bool getNextTrig(TrigIterator* ti);

@@ -488,8 +488,39 @@ void procPTEx(){
   }
 }
 
+bool isAddonPair(u16 addon, u16 main) {
+  if(!(unitsdat.abilFlags[addon] & UNITSDAT_ABIL_ADDON)){
+    u16 tmp = addon;
+    addon = main;
+    main = tmp;
+  }
+  switch(addon){
+    case UNIT_COMSAT_STATION:
+    case UNIT_NUCLEAR_SILO:
+      return main == UNIT_COMMAND_CENTER;
+    case UNIT_CONTROL_TOWER:
+      return main == UNIT_STARPORT;
+    case UNIT_COVERT_OPS:
+    case UNIT_PHYSICS_LAB:
+      return main == UNIT_SCIENCE_FACILITY;
+    case UNIT_MACHINE_SHOP:
+      return main == UNIT_FACTORY;
+  }
+  return false;
+}
+
+// TODO: make melee a separate function
 void procUNIT(bool melee){
   u32 i, newid = 0, propMask, connections = 0;
+  int j;
+  u8 nydusList[unitCount];
+  u32 nydusCount = 0;
+  u8 addonList[unitCount];
+  u32 addonCount = 0;
+  
+  memset(nydusList, 0, unitCount);
+  memset(addonList, 0, unitCount);
+  
   for(i = 0; i < unitCount; i++){
     if(melee){ // Melee mode -- only allow P12 neutral units and start locations
       if(chkUNIT[i].player <= PLAYER_8){
@@ -585,23 +616,6 @@ Null unit "serial" and other misc information if it is not connected with anythi
       if(chkUNIT[i].unitID < 228){ // Valid unit -- for others, who knows.
         usedUnits[chkUNIT[i].unitID] |= USEDUNIT_PREPLACED;
         
-        // Check if building is attached to anything
-        if((chkUNIT[i].bldgRelation & UNIT_REL_NYDUS) != 0){
-          if(chkUNIT[i].unitID != UNIT_NYDUS_CANAL) chkUNIT[i].bldgRelation = 0;
-        }else if((chkUNIT[i].bldgRelation & UNIT_REL_ADDON) != 0){
-          if(chkUNIT[i].unitID <= UNIT_DISRUPTION_WEB ||  // Not a building
-            (chkUNIT[i].unitID >= UNIT_SUPPLY_DEPOT && chkUNIT[i].unitID <= UNIT_ACADEMY) || // Not an addon or addon building
-            (chkUNIT[i].unitID >= UNIT_STARBASE && chkUNIT[i].unitID != UNIT_MACHINE_SHOP)){ // Not an addon or addon building
-            chkUNIT[i].bldgRelation = 0;
-          }
-        }else{
-          chkUNIT[i].bldgRelation = 0;
-        }
-        if(chkUNIT[i].bldgRelation == 0){
-          chkUNIT[i].classInstance = 0;
-          chkUNIT[i].relatedBldg = 0;
-        }
-        
         // Get valid properties for the unit type
         if((unitsdat.abilFlags[chkUNIT[i].unitID] & UNITSDAT_ABIL_CLOAKABLE) != 0){
           propMask |= UNIT_PROP_CLOAK;
@@ -642,11 +656,103 @@ Null unit "serial" and other misc information if it is not connected with anythi
         propMask &= 0xFFFF0000 | chkUNIT[i].stateFlags; // Get only flags that are used ...
         chkUNIT[i].validFlags &= propMask; // ... and only mark those as valid
         chkUNIT[i].unused = 0;
+        
+        // Check if building is attached to anything
+        if(chkUNIT[i].unitID == UNIT_NYDUS_CANAL && chkUNIT[i].relatedBldg) {
+          nydusList[i] = 1;
+          nydusCount++;
+        } else if((unitsdat.groupFlags[chkUNIT[i].unitID] & UNITSDAT_GROUP_TERRAN) && (unitsdat.abilFlags[chkUNIT[i].unitID] & UNITSDAT_ABIL_BUILDING) && !(chkUNIT[i].stateFlags & UNIT_PROP_TRANSIT) && chkUNIT[i].relatedBldg) {
+          addonList[i] = 1;
+          addonCount++;
+        } else {
+          chkUNIT[i].classInstance = 0;
+          chkUNIT[i].relatedBldg = 0;
+        }
+        chkUNIT[i].bldgRelation = 0;
+      }
+    }
+  }
+  
+  if(nydusCount){
+    i = unitCount;
+    while(i){
+      i--;
+      if(!nydusList[i]) continue;
+      for(j = i-1; j >= 0; j--){
+        if(!nydusList[j]) continue;
+        if(chkUNIT[j].relatedBldg == chkUNIT[i].classInstance){
+          chkUNIT[i].classInstance = nydusList[i];
+          chkUNIT[i].relatedBldg = nydusList[i];
+          chkUNIT[j].classInstance = 0;
+          chkUNIT[j].relatedBldg = nydusList[i];
+          nydusList[i] = 0;
+          nydusList[j] = 0;
+          break;
+        }
+        nydusList[j]++;
+      }
+    }
+  }
+  if(addonCount){ // clear invalid addon pairs
+    i = unitCount;
+    while(i){
+      i--;
+      if(!addonList[i]) continue;
+      for(j = i-1; j >= 0; j--){
+        if(!addonList[j]) continue;
+        if(chkUNIT[j].relatedBldg == chkUNIT[i].classInstance){
+          if(!isAddonPair(chkUNIT[i].unitID, chkUNIT[j].unitID)){
+            addonList[i] = 0;
+            addonCount--;
+            if(i != j){
+              addonList[j] = 0;
+              addonCount--;
+            }
+          }
+          break;
+        }
+      }
+    }
+  }
+  if(addonCount){
+    int humanCount = 0;
+    for (newid = PLAYER_1; newid <= PLAYER_8; newid++){
+      if(usedPlayers[newid] == USEDPLAYER_HUMAN) humanCount++;
+    }
+    // get lowest used non-human player ID (or allow human player ID if there's only 1 player)
+    for (newid = PLAYER_1; newid <= PLAYER_12; newid++){
+      if(usedPlayers[newid] != USEDPLAYER_UNUSED && (humanCount == 1 || usedPlayers[newid] != USEDPLAYER_HUMAN)) break;
+    }
+    i = unitCount;
+    while(i){
+      i--;
+      if(!addonList[i]) continue;
+      for(j = i-1; j >= 0; j--){
+        if(!addonList[j]) continue;
+        if(chkUNIT[j].relatedBldg == chkUNIT[i].classInstance){
+          chkUNIT[i].classInstance = addonList[i];
+          chkUNIT[i].relatedBldg = addonList[i];
+          chkUNIT[j].classInstance = 0;
+          chkUNIT[j].relatedBldg = addonList[i];
+          addonList[i] = 0;
+          addonList[j] = 0;
+          // set non-human addons to lowest ID
+          if(chkUNIT[i].player == chkUNIT[j].player){
+            if(unitsdat.abilFlags[chkUNIT[i].unitID] & UNITSDAT_ABIL_ADDON){
+              if(usedPlayers[chkUNIT[i].player] != USEDPLAYER_HUMAN) chkUNIT[i].player = newid;
+            }else{
+              if(usedPlayers[chkUNIT[j].player] != USEDPLAYER_HUMAN) chkUNIT[j].player = newid;
+            }
+          }
+          break;
+        }
+        addonList[j]++;
       }
     }
   }
 }
 
+// TODO: make melee a separate function
 void procTHG2(bool melee){
   u32 i, newid = 0;
   for(i = 0; i < thg2Count; i++){
@@ -707,6 +813,7 @@ void procMASK(){
   for(maskSize = mapSize; maskSize > 0 && chkMASK[maskSize-1] == 0xFF; maskSize--);
 }
 
+// TODO: make melee a separate function
 void procSTR(bool melee){
   u32 i,j;
   u32 newSTRCount = 0;
@@ -874,6 +981,8 @@ Reference all WAV files from current strings rather than their own individual fi
   TrigIterator ti;
   CONDITION* c;
   ACTION* a;
+  
+  if(trigCount == 0) return;
   
   if(triglist != NULL) free(triglist);
   triglist = malloc(trigCount * sizeof(u32));

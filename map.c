@@ -96,15 +96,25 @@ char* saveMap(const char* filename, u32 outType){
         }
         if(mapFiles[i].comp == 0){ // File has not been compressed
     #ifdef SAVE_DBGLOG
-    fputs("Compressing CHK...\n", fDbg);
+    fputs("Making CHK Buffer...\n", fDbg);
     fflush(fDbg);
     #endif
           chkBuffer = createCHKBuffer(outType);
-          if(outType <= MODE_MELEE_EXTENDED){
-            newCHKSize = createMeleeCHK(chkBuffer, outType);
+    #ifdef SAVE_DBGLOG
+    fputs("Compressing CHK...\n", fDbg);
+    fflush(fDbg);
+          if(outType & (MODE_MELEE_SIMPLE | MODE_MELEE_EXTENDED)){
+            newCHKSize = createMeleeCHK(chkBuffer, outType, fDbg);
           }else{
-            newCHKSize = createUMSCHK(chkBuffer, outType);
+            newCHKSize = createUMSCHK(chkBuffer, outType, fDbg);
           }
+    #else
+          if(outType & (MODE_MELEE_SIMPLE | MODE_MELEE_EXTENDED)){
+            newCHKSize = createMeleeCHK(chkBuffer, outType, NULL);
+          }else{
+            newCHKSize = createUMSCHK(chkBuffer, outType, NULL);
+          }
+    #endif
     #ifdef SAVE_DBGLOG
     fprintf(fDbg, "CHK Size = %d\n", newCHKSize);
     fflush(fDbg);
